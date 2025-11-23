@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { AIChat } from "@/components/AIChat";
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
@@ -254,10 +255,15 @@ const TrackDetail = () => {
                   </div>
                 </div>
 
-                <Button className="w-full" variant="outline">
-                  <Trophy className="h-4 w-4 mr-2" />
-                  View Achievements
-                </Button>
+                <div className="flex gap-3">
+                  <Button className="gradient-primary text-white border-0">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                  <Button variant="outline" className="glass-surface">
+                    <Bookmark className="h-4 w-4" />
+                  </Button>
+                </div>
               </Card>
 
               <Card className="glass-card p-6 space-y-4">
@@ -268,14 +274,14 @@ const TrackDetail = () => {
                 <p className="text-sm text-muted-foreground">
                   Need help? Ask our AI assistant about this track.
                 </p>
-                <Button className="w-full gradient-primary text-white border-0">
-                  Start Chat
-                </Button>
               </Card>
             </div>
           </motion.aside>
         </div>
       </main>
+
+      {/* AI Chat Bubble */}
+      <AIChat context={{ roadmapId: mockTrack.id }} />
     </div>
   );
 };
