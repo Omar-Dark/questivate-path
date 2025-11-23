@@ -63,25 +63,25 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark mode: Dark background with cyan accents and white text */
-    --background: 0 0% 10%;
-    --foreground: 0 0% 100%;
+    /* Elegant dark mode with rich colors */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 100%;
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
 
     --primary: 189 94% 43%;
     --primary-foreground: 0 0% 100%;
     --primary-light: 189 94% 53%;
 
-    --secondary: 189 94% 20%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 217 33% 24%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 217 33% 21%;
+    --muted-foreground: 215 20% 65%;
 
     --accent: 189 94% 43%;
     --accent-foreground: 0 0% 100%;
@@ -89,8 +89,8 @@ All colors MUST be HSL.
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
+    --border: 217 33% 24%;
+    --input: 217 33% 21%;
     --ring: 189 94% 43%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;

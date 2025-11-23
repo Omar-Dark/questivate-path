@@ -7,9 +7,13 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import * as React from "react";
 
 const Tracks = () => {
   const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [difficultyFilter, setDifficultyFilter] = React.useState("all");
+  const [sortBy, setSortBy] = React.useState("popular");
 
   // Fetch roadmaps
   const { data: roadmaps, isLoading } = useQuery({
@@ -49,6 +53,27 @@ const Tracks = () => {
     return progress?.progress_percent || 0;
   };
 
+  const filteredRoadmaps = React.useMemo(() => {
+    if (!roadmaps) return [];
+    
+    let filtered = roadmaps.filter(roadmap => {
+      const matchesSearch = roadmap.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        roadmap.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesDifficulty = difficultyFilter === "all" || roadmap.difficulty === difficultyFilter;
+      return matchesSearch && matchesDifficulty;
+    });
+
+    if (sortBy === "recent") {
+      filtered = filtered.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    } else if (sortBy === "duration") {
+      filtered = filtered.sort((a, b) => a.estimated_hours - b.estimated_hours);
+    }
+
+    return filtered;
+  }, [roadmaps, searchQuery, difficultyFilter, sortBy]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen">
@@ -85,9 +110,11 @@ const Tracks = () => {
               <Input
                 placeholder="Search tracks..."
                 className="pl-10 glass-surface"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Select defaultValue="all">
+            <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
               <SelectTrigger className="w-full md:w-48 glass-surface">
                 <SelectValue placeholder="Difficulty" />
               </SelectTrigger>
@@ -98,7 +125,7 @@ const Tracks = () => {
                 <SelectItem value="advanced">Advanced</SelectItem>
               </SelectContent>
             </Select>
-            <Select defaultValue="popular">
+            <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-full md:w-48 glass-surface">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -111,7 +138,12 @@ const Tracks = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {roadmaps?.map((roadmap, index) => (
+            {filteredRoadmaps.length === 0 ? (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                No tracks found matching your criteria
+              </div>
+            ) : (
+              filteredRoadmaps.map((roadmap, index) => (
               <TrackCard 
                 key={roadmap.id} 
                 id={roadmap.slug}
@@ -123,7 +155,8 @@ const Tracks = () => {
                 coverImage={roadmap.cover_image_url}
                 delay={index * 0.1}
               />
-            ))}
+            ))
+            )}
           </div>
         </motion.div>
       </main>
