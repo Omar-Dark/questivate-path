@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
+import { AIChat } from "@/components/AIChat";
 import Index from "./pages/Index";
 import Tracks from "./pages/TracksNew";
 import TrackDetail from "./pages/TrackDetailNew";
@@ -13,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import Quiz from "./pages/Quiz";
 import QuizResults from "./pages/QuizResults";
 import Leaderboard from "./pages/Leaderboard";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,8 +36,10 @@ const App = () => (
             <Route path="/quiz/:id" element={<Quiz />} />
             <Route path="/quiz/:id/results/:attemptId" element={<QuizResults />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <AIChat />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

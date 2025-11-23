@@ -348,9 +348,6 @@ const TrackDetail = () => {
           </motion.aside>
         </div>
       </main>
-
-      {/* AI Chat Bubble */}
-      <AIChat context={{ roadmapId: roadmap.id }} />
     </div>
   );
 };
