@@ -6,7 +6,6 @@ import { motion, useScroll, useTransform, useMotionValue, useSpring } from "fram
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 
@@ -316,92 +315,81 @@ const Index = () => {
             </p>
           </motion.div>
 
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-4">
-              {roadmaps?.map((roadmap, index) => (
-                <CarouselItem key={roadmap.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                  <motion.div
-                    initial={{ opacity: 0, y: 50, rotateY: -15 }}
-                    whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1, duration: 0.6 }}
-                    whileHover={{ 
-                      scale: 1.05, 
-                      rotateY: 5,
-                      z: 50,
-                    }}
-                    className="group"
-                  >
-                    <Link to={`/track/${roadmap.slug}`}>
-                      <Card className="glass-card backdrop-blur-xl border-primary/20 hover:border-primary/50 transition-all duration-300 overflow-hidden h-full">
-                        {roadmap.cover_image_url && (
-                          <div className="relative h-48 overflow-hidden">
-                            <motion.img
-                              src={roadmap.cover_image_url}
-                              alt={roadmap.title}
-                              className="w-full h-full object-cover"
-                              whileHover={{ scale: 1.1 }}
-                              transition={{ duration: 0.6 }}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {roadmaps?.map((roadmap, index) => (
+              <motion.div
+                key={roadmap.id}
+                initial={{ opacity: 0, y: 50, rotateY: -15 }}
+                whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.6 }}
+                whileHover={{ 
+                  scale: 1.05, 
+                  rotateY: 5,
+                  z: 50,
+                }}
+                className="group"
+              >
+                <Link to={`/track/${roadmap.slug}`}>
+                  <Card className="glass-card backdrop-blur-xl border-primary/20 hover:border-primary/50 transition-all duration-300 overflow-hidden h-full">
+                    {roadmap.cover_image_url && (
+                      <div className="relative h-48 overflow-hidden">
+                        <motion.img
+                          src={roadmap.cover_image_url}
+                          alt={roadmap.title}
+                          className="w-full h-full object-cover"
+                          whileHover={{ scale: 1.1 }}
+                          transition={{ duration: 0.6 }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+                      </div>
+                    )}
+                    <div className="p-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          roadmap.difficulty === 'beginner' 
+                            ? 'bg-primary/20 text-primary' 
+                            : roadmap.difficulty === 'intermediate'
+                            ? 'bg-primary-light/20 text-primary-light'
+                            : 'bg-accent/20 text-accent-foreground'
+                        }`}>
+                          {roadmap.difficulty}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {roadmap.estimated_hours}h
+                        </span>
+                      </div>
+                      <h3 className="text-2xl font-display font-bold group-hover:text-primary transition-colors">
+                        {roadmap.title}
+                      </h3>
+                      <p className="text-muted-foreground line-clamp-2">
+                        {roadmap.description}
+                      </p>
+                      {user && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Progress</span>
+                            <span className="font-semibold text-primary">
+                              {getProgressForRoadmap(roadmap.id)}%
+                            </span>
+                          </div>
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${getProgressForRoadmap(roadmap.id)}%` }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 1, delay: 0.5 }}
+                              className="h-full gradient-primary"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
                           </div>
-                        )}
-                        <div className="p-6 space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              roadmap.difficulty === 'beginner' 
-                                ? 'bg-primary/20 text-primary' 
-                                : roadmap.difficulty === 'intermediate'
-                                ? 'bg-primary-light/20 text-primary-light'
-                                : 'bg-accent/20 text-accent-foreground'
-                            }`}>
-                              {roadmap.difficulty}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              {roadmap.estimated_hours}h
-                            </span>
-                          </div>
-                          <h3 className="text-2xl font-display font-bold group-hover:text-primary transition-colors">
-                            {roadmap.title}
-                          </h3>
-                          <p className="text-muted-foreground line-clamp-2">
-                            {roadmap.description}
-                          </p>
-                          {user && (
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Progress</span>
-                                <span className="font-semibold text-primary">
-                                  {getProgressForRoadmap(roadmap.id)}%
-                                </span>
-                              </div>
-                              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                <motion.div
-                                  initial={{ width: 0 }}
-                                  whileInView={{ width: `${getProgressForRoadmap(roadmap.id)}%` }}
-                                  viewport={{ once: true }}
-                                  transition={{ duration: 1, delay: 0.5 }}
-                                  className="h-full gradient-primary"
-                                />
-                              </div>
-                            </div>
-                          )}
                         </div>
-                      </Card>
-                    </Link>
-                  </motion.div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="glass-card backdrop-blur-xl border-primary/30 hover:border-primary hover:bg-primary/10" />
-            <CarouselNext className="glass-card backdrop-blur-xl border-primary/30 hover:border-primary hover:bg-primary/10" />
-          </Carousel>
+                      )}
+                    </div>
+                  </Card>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
 
           <motion.div
             initial={{ opacity: 0 }}
