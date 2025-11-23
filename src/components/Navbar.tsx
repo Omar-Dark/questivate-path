@@ -12,6 +12,7 @@ import { BookOpen, User, Menu, LogOut, LayoutDashboard, Trophy } from "lucide-re
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -44,6 +45,7 @@ export const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
