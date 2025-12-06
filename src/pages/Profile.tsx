@@ -17,6 +17,30 @@ import {
   Trophy, CheckCircle2, Loader2 
 } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// Validation schema for profile fields
+const profileSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(1, "Username is required")
+    .max(50, "Username must be 50 characters or less")
+    .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
+  bio: z
+    .string()
+    .trim()
+    .max(500, "Bio must be 500 characters or less")
+    .optional()
+    .or(z.literal("")),
+  avatar_url: z
+    .string()
+    .trim()
+    .url("Please enter a valid URL")
+    .max(500, "URL must be 500 characters or less")
+    .optional()
+    .or(z.literal("")),
+});
 
 const Profile = () => {
   const { user, loading: authLoading } = useAuth();
@@ -113,15 +137,30 @@ const Profile = () => {
   };
 
   const handleSaveProfile = async () => {
+    // Validate inputs before saving
+    const validationResult = profileSchema.safeParse({
+      username,
+      bio,
+      avatar_url: avatarUrl,
+    });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors;
+      toast.error(errors[0]?.message || "Invalid input");
+      return;
+    }
+
     try {
       setSaving(true);
+
+      const validatedData = validationResult.data;
 
       const { error } = await supabase
         .from("profiles")
         .update({
-          username,
-          bio,
-          avatar_url: avatarUrl,
+          username: validatedData.username,
+          bio: validatedData.bio || null,
+          avatar_url: validatedData.avatar_url || null,
           updated_at: new Date().toISOString()
         })
         .eq("id", user?.id);
