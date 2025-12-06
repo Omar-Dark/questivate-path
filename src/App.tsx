@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +11,7 @@ import Tracks from "./pages/TracksNew";
 import TrackDetail from "./pages/TrackDetailNew";
 import Projects from "./pages/Projects";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
+import DashboardNew from "./pages/DashboardNew";
 import Quiz from "./pages/Quiz";
 import QuizResults from "./pages/QuizResults";
 import Leaderboard from "./pages/Leaderboard";
@@ -19,9 +20,21 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Set dark mode as default
+function DarkModeInitializer() {
+  useEffect(() => {
+    if (!localStorage.getItem("theme")) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    }
+  }, []);
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <DarkModeInitializer />
       <Toaster />
       <Sonner />
       <BrowserRouter>
@@ -29,7 +42,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<DashboardNew />} />
             <Route path="/tracks" element={<Tracks />} />
             <Route path="/track/:id" element={<TrackDetail />} />
             <Route path="/projects" element={<Projects />} />
