@@ -319,6 +319,7 @@ export type Database = {
           id: string
           passing_score: number | null
           roadmap_id: string
+          section_id: string | null
           time_limit_minutes: number | null
           title: string
         }
@@ -328,6 +329,7 @@ export type Database = {
           id?: string
           passing_score?: number | null
           roadmap_id: string
+          section_id?: string | null
           time_limit_minutes?: number | null
           title: string
         }
@@ -337,6 +339,7 @@ export type Database = {
           id?: string
           passing_score?: number | null
           roadmap_id?: string
+          section_id?: string | null
           time_limit_minutes?: number | null
           title?: string
         }
@@ -346,6 +349,13 @@ export type Database = {
             columns: ["roadmap_id"]
             isOneToOne: false
             referencedRelation: "roadmaps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quizzes_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
             referencedColumns: ["id"]
           },
         ]
