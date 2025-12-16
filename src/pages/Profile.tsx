@@ -14,7 +14,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   User, Camera, BookOpen, Bookmark, Settings, 
-  Trophy, CheckCircle2, Loader2 
+  Trophy, CheckCircle2, Loader2, MapPin, Globe,
+  Github, Linkedin, Phone, Calendar, Mail
 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -27,6 +28,12 @@ const profileSchema = z.object({
     .min(1, "Username is required")
     .max(50, "Username must be 50 characters or less")
     .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
+  full_name: z
+    .string()
+    .trim()
+    .max(100, "Full name must be 100 characters or less")
+    .optional()
+    .or(z.literal("")),
   bio: z
     .string()
     .trim()
@@ -40,6 +47,39 @@ const profileSchema = z.object({
     .max(500, "URL must be 500 characters or less")
     .optional()
     .or(z.literal("")),
+  location: z
+    .string()
+    .trim()
+    .max(100, "Location must be 100 characters or less")
+    .optional()
+    .or(z.literal("")),
+  website: z
+    .string()
+    .trim()
+    .url("Please enter a valid URL")
+    .max(500, "URL must be 500 characters or less")
+    .optional()
+    .or(z.literal("")),
+  github_url: z
+    .string()
+    .trim()
+    .url("Please enter a valid URL")
+    .max(500, "URL must be 500 characters or less")
+    .optional()
+    .or(z.literal("")),
+  linkedin_url: z
+    .string()
+    .trim()
+    .url("Please enter a valid URL")
+    .max(500, "URL must be 500 characters or less")
+    .optional()
+    .or(z.literal("")),
+  phone: z
+    .string()
+    .trim()
+    .max(20, "Phone must be 20 characters or less")
+    .optional()
+    .or(z.literal("")),
 });
 
 const Profile = () => {
@@ -50,8 +90,15 @@ const Profile = () => {
   
   const [profile, setProfile] = useState<any>(null);
   const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [location, setLocation] = useState("");
+  const [website, setWebsite] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [phone, setPhone] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   
   const [completedRoadmaps, setCompletedRoadmaps] = useState<any[]>([]);
   const [savedRoadmaps, setSavedRoadmaps] = useState<any[]>([]);
@@ -88,8 +135,15 @@ const Profile = () => {
       if (profileData) {
         setProfile(profileData);
         setUsername(profileData.username || "");
+        setFullName(profileData.full_name || "");
         setBio(profileData.bio || "");
         setAvatarUrl(profileData.avatar_url || "");
+        setLocation(profileData.location || "");
+        setWebsite(profileData.website || "");
+        setGithubUrl(profileData.github_url || "");
+        setLinkedinUrl(profileData.linkedin_url || "");
+        setPhone(profileData.phone || "");
+        setBirthDate(profileData.birth_date || "");
       }
 
       // Fetch user progress
@@ -140,8 +194,14 @@ const Profile = () => {
     // Validate inputs before saving
     const validationResult = profileSchema.safeParse({
       username,
+      full_name: fullName,
       bio,
       avatar_url: avatarUrl,
+      location,
+      website: website || undefined,
+      github_url: githubUrl || undefined,
+      linkedin_url: linkedinUrl || undefined,
+      phone,
     });
 
     if (!validationResult.success) {
@@ -153,14 +213,19 @@ const Profile = () => {
     try {
       setSaving(true);
 
-      const validatedData = validationResult.data;
-
       const { error } = await supabase
         .from("profiles")
         .update({
-          username: validatedData.username,
-          bio: validatedData.bio || null,
-          avatar_url: validatedData.avatar_url || null,
+          username,
+          full_name: fullName || null,
+          bio: bio || null,
+          avatar_url: avatarUrl || null,
+          location: location || null,
+          website: website || null,
+          github_url: githubUrl || null,
+          linkedin_url: linkedinUrl || null,
+          phone: phone || null,
+          birth_date: birthDate || null,
           updated_at: new Date().toISOString()
         })
         .eq("id", user?.id);
@@ -233,7 +298,7 @@ const Profile = () => {
                     <Avatar className="h-24 w-24">
                       <AvatarImage src={avatarUrl} />
                       <AvatarFallback className="gradient-primary text-white text-2xl">
-                        {username.charAt(0).toUpperCase() || 'U'}
+                        {(fullName || username).charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <Button 
@@ -246,15 +311,27 @@ const Profile = () => {
                   </div>
 
                   <div className="flex-1 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="username">Username</Label>
-                      <Input
-                        id="username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Enter username"
-                        className="glass-surface"
-                      />
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input
+                          id="fullName"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          placeholder="John Doe"
+                          className="glass-surface"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="username">Username</Label>
+                        <Input
+                          id="username"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          placeholder="johndoe"
+                          className="glass-surface"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -270,6 +347,61 @@ const Profile = () => {
                   </div>
                 </div>
 
+                <Separator />
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" /> Email
+                    </Label>
+                    <Input
+                      id="email"
+                      value={user?.email || ""}
+                      disabled
+                      className="glass-surface opacity-60"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="birthDate" className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" /> Birth Date
+                    </Label>
+                    <Input
+                      id="birthDate"
+                      type="date"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                      className="glass-surface"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" /> Phone
+                    </Label>
+                    <Input
+                      id="phone"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+1 234 567 8900"
+                      className="glass-surface"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" /> Location
+                    </Label>
+                    <Input
+                      id="location"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="New York, USA"
+                      className="glass-surface"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
                   <Textarea
@@ -281,13 +413,50 @@ const Profile = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input
-                    value={user?.email || ""}
-                    disabled
-                    className="glass-surface opacity-60"
-                  />
+                <Separator />
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Social Links</h3>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="website" className="flex items-center gap-2">
+                        <Globe className="h-4 w-4" /> Website
+                      </Label>
+                      <Input
+                        id="website"
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value)}
+                        placeholder="https://yourwebsite.com"
+                        className="glass-surface"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="github" className="flex items-center gap-2">
+                        <Github className="h-4 w-4" /> GitHub
+                      </Label>
+                      <Input
+                        id="github"
+                        value={githubUrl}
+                        onChange={(e) => setGithubUrl(e.target.value)}
+                        placeholder="https://github.com/username"
+                        className="glass-surface"
+                      />
+                    </div>
+
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="linkedin" className="flex items-center gap-2">
+                        <Linkedin className="h-4 w-4" /> LinkedIn
+                      </Label>
+                      <Input
+                        id="linkedin"
+                        value={linkedinUrl}
+                        onChange={(e) => setLinkedinUrl(e.target.value)}
+                        placeholder="https://linkedin.com/in/username"
+                        className="glass-surface"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <Button 
