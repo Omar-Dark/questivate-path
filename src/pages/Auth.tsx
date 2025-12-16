@@ -11,6 +11,26 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+import { z } from 'zod';
+
+// Validation schemas
+const signUpSchema = z.object({
+  email: z.string().trim().email('Invalid email format'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain an uppercase letter')
+    .regex(/[a-z]/, 'Password must contain a lowercase letter')
+    .regex(/[0-9]/, 'Password must contain a number'),
+  username: z.string().trim()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be less than 30 characters')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, hyphens, and underscores')
+});
+
+const signInSchema = z.object({
+  email: z.string().trim().email('Invalid email format'),
+  password: z.string().min(1, 'Password is required')
+});
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -28,23 +48,21 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !username) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    
+    // Validate input with zod
+    const result = signUpSchema.safeParse({ email, password, username });
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
       return;
     }
 
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: result.data.email,
+        password: result.data.password,
         options: {
-          data: { username },
+          data: { username: result.data.username },
           emailRedirectTo: `${window.location.origin}/`,
         },
       });
@@ -62,16 +80,19 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error('Please fill in all fields');
+    
+    // Validate input with zod
+    const result = signInSchema.safeParse({ email, password });
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
       return;
     }
 
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: result.data.email,
+        password: result.data.password,
       });
 
       if (error) throw error;
@@ -248,7 +269,7 @@ const Auth = () => {
                       className="glass-surface"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Must be at least 6 characters
+                      Min 8 characters with uppercase, lowercase, and number
                     </p>
                   </div>
 
