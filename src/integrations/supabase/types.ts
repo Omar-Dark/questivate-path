@@ -626,7 +626,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      user_completed_quiz: {
+        Args: { quiz_question_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
