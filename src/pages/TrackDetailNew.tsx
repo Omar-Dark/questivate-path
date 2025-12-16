@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AIChat } from "@/components/AIChat";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +21,9 @@ import {
   MessageCircle,
   Download,
   Bookmark,
-  ExternalLink
+  ExternalLink,
+  GraduationCap,
+  Star
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -35,6 +37,7 @@ const resourceIcons = {
 const TrackDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [completedResources, setCompletedResources] = useState<Set<string>>(new Set());
 
   // Fetch roadmap data
@@ -86,6 +89,41 @@ const TrackDetail = () => {
       return sectionsWithResources;
     },
     enabled: !!roadmap?.id,
+  });
+
+  // Fetch quizzes for this roadmap
+  const { data: quizzes } = useQuery({
+    queryKey: ["quizzes", roadmap?.id],
+    queryFn: async () => {
+      if (!roadmap?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("quizzes")
+        .select("*, questions:questions(count)")
+        .eq("roadmap_id", roadmap.id);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!roadmap?.id,
+  });
+
+  // Fetch user's quiz attempts
+  const { data: quizAttempts } = useQuery({
+    queryKey: ["quizAttempts", roadmap?.id, user?.id],
+    queryFn: async () => {
+      if (!roadmap?.id || !user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("quiz_attempts")
+        .select("*")
+        .eq("user_id", user.id)
+        .in("quiz_id", quizzes?.map(q => q.id) || []);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!roadmap?.id && !!user?.id && !!quizzes?.length,
   });
 
   // Fetch user progress
@@ -153,6 +191,30 @@ const TrackDetail = () => {
     const total = getTotalResources();
     if (total === 0) return 0;
     return Math.round((getCompletedCount() / total) * 100);
+  };
+
+  const getQuizForSection = (sectionIdx: number) => {
+    // For now, we'll use the roadmap-level quiz
+    // In a full implementation, each section would have its own quiz
+    return quizzes?.[0];
+  };
+
+  const getBestAttemptForQuiz = (quizId: string) => {
+    if (!quizAttempts) return null;
+    const attempts = quizAttempts.filter(a => a.quiz_id === quizId && a.finished_at);
+    if (attempts.length === 0) return null;
+    return attempts.reduce((best, current) => 
+      (current.percentage || 0) > (best.percentage || 0) ? current : best
+    );
+  };
+
+  const handleStartQuiz = (quizId: string) => {
+    if (!user) {
+      toast.error("Please login to take quizzes");
+      navigate("/auth");
+      return;
+    }
+    navigate(`/quiz/${quizId}`);
   };
 
   if (roadmapLoading || sectionsLoading) {
@@ -307,6 +369,52 @@ const TrackDetail = () => {
                         );
                       })}
                     </div>
+
+                    {/* Section Quiz */}
+                    {quizzes && quizzes.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-border">
+                        {(() => {
+                          const quiz = getQuizForSection(sectionIdx);
+                          if (!quiz) return null;
+                          const bestAttempt = getBestAttemptForQuiz(quiz.id);
+                          const passed = bestAttempt && (bestAttempt.percentage || 0) >= (quiz.passing_score || 70);
+                          
+                          return (
+                            <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
+                              <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-full ${passed ? 'bg-green-500/20' : 'bg-primary/20'}`}>
+                                  {passed ? (
+                                    <Trophy className="h-5 w-5 text-green-500" />
+                                  ) : (
+                                    <GraduationCap className="h-5 w-5 text-primary" />
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-sm">Section Quiz</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {bestAttempt ? (
+                                      <span className="flex items-center gap-1">
+                                        Best Score: <Star className="h-3 w-3 text-yellow-500" /> {bestAttempt.percentage?.toFixed(0)}%
+                                        {passed && <span className="text-green-500 ml-1">• Passed!</span>}
+                                      </span>
+                                    ) : (
+                                      `${quiz.passing_score || 70}% required to pass`
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={() => handleStartQuiz(quiz.id)}
+                                className={passed ? "bg-green-500 hover:bg-green-600" : "gradient-primary"}
+                              >
+                                {bestAttempt ? (passed ? "Retake Quiz" : "Try Again") : "Take Quiz"}
+                              </Button>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </Card>
                 </motion.div>
               ))}
