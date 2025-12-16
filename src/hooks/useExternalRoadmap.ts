@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
 // External API endpoint
-const ROADMAP_API_URL = "https://roadmap-project-chi.vercel.app/";
+const ROADMAP_API_BASE = "https://roadmap-project-api-production.up.railway.app";
+const API_KEY = "e7b12f8bf9c4e92b13a45b0d7c9e1b342fc4d8ff6c2a9a1e3b6d91f7c8a12bcd";
 
 // Since the API returns only a status message, we define the expected roadmap structure
 // and use fallback data when the API doesn't return actual roadmap data
@@ -198,16 +199,32 @@ const fallbackRoadmaps: ExternalRoadmap[] = [
 
 async function fetchExternalRoadmap(): Promise<ExternalRoadmap[]> {
   try {
-    const response = await fetch(ROADMAP_API_URL);
-    const data = await response.json();
+    // Try common API endpoints
+    const endpoints = [
+      `${ROADMAP_API_BASE}/roadmaps?key=${API_KEY}`,
+      `${ROADMAP_API_BASE}/api/roadmaps?key=${API_KEY}`,
+      `${ROADMAP_API_BASE}/?key=${API_KEY}`,
+    ];
     
-    // Check if the API returns actual roadmap data
-    if (data.roadmaps && Array.isArray(data.roadmaps)) {
-      return data.roadmaps;
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(endpoint);
+        const data = await response.json();
+        
+        // Check if the API returns actual roadmap data
+        if (data.roadmaps && Array.isArray(data.roadmaps)) {
+          return data.roadmaps;
+        }
+        if (Array.isArray(data) && data.length > 0 && data[0].nodes) {
+          return data;
+        }
+      } catch {
+        continue;
+      }
     }
     
-    // If API only returns status message, use fallback data
-    console.log("API returned:", data.message || "No roadmap data");
+    // If no endpoint returns valid data, use fallback
+    console.log("API did not return roadmap data, using fallback");
     return fallbackRoadmaps;
   } catch (error) {
     console.error("Failed to fetch from external API, using fallback:", error);
