@@ -15,18 +15,47 @@ const Tracks = () => {
   const [difficultyFilter, setDifficultyFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("popular");
 
-  // Fetch roadmaps
+  // Fetch roadmaps with content check
   const { data: roadmaps, isLoading } = useQuery({
-    queryKey: ["roadmaps"],
+    queryKey: ["roadmaps-with-content"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch roadmaps
+      const { data: roadmapData, error: roadmapError } = await supabase
         .from("roadmaps")
         .select("*")
         .eq("published", true)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (roadmapError) throw roadmapError;
+      if (!roadmapData) return [];
+
+      // Fetch sections with resources for all roadmaps
+      const { data: sectionsWithResources, error: sectionsError } = await supabase
+        .from("sections")
+        .select("roadmap_id, resources(id)")
+        .in("roadmap_id", roadmapData.map(r => r.id));
+
+      // Fetch quizzes for all roadmaps
+      const { data: quizzes, error: quizzesError } = await supabase
+        .from("quizzes")
+        .select("roadmap_id")
+        .in("roadmap_id", roadmapData.map(r => r.id));
+
+      if (sectionsError) throw sectionsError;
+      if (quizzesError) throw quizzesError;
+
+      // Create sets of roadmap IDs that have content
+      const roadmapsWithResources = new Set(
+        sectionsWithResources
+          ?.filter(s => s.resources && s.resources.length > 0)
+          .map(s => s.roadmap_id) || []
+      );
+      const roadmapsWithQuizzes = new Set(quizzes?.map(q => q.roadmap_id) || []);
+
+      // Filter to only include roadmaps with at least some content
+      return roadmapData.filter(roadmap => 
+        roadmapsWithResources.has(roadmap.id) || roadmapsWithQuizzes.has(roadmap.id)
+      );
     },
   });
 
