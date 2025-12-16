@@ -2,3 +2,6 @@ project_id = "geainmfgazpfvannstxb"
 
 [functions.ai-chat]
 verify_jwt = true
+
+[functions.fetch-external-roadmap]
+verify_jwt = false
