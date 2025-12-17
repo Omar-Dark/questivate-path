@@ -39,7 +39,7 @@ export const TrackCard = ({
       transition={{ duration: 0.5, delay }}
       whileHover={{ y: -4 }}
     >
-      <Link to={`/track/${id}`}>
+      <Link to={`/roadmap/${id}`}>
         <Card className="glass-card group hover:border-primary/50 transition-all duration-300 overflow-hidden h-full">
           {coverImage && (
             <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 overflow-hidden">

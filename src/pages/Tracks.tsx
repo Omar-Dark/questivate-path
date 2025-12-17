@@ -2,61 +2,50 @@ import { Navbar } from "@/components/Navbar";
 import { TrackCard } from "@/components/TrackCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-
-const mockTracks = [
-  {
-    id: "web-dev-fundamentals",
-    title: "Web Development Fundamentals",
-    description: "Master HTML, CSS, and JavaScript from scratch. Build responsive websites and understand modern web standards.",
-    difficulty: "beginner" as const,
-    duration: "40 hours",
-    progress: 0,
-  },
-  {
-    id: "react-mastery",
-    title: "React Mastery",
-    description: "Learn React from basics to advanced patterns. Hooks, context, performance optimization, and modern best practices.",
-    difficulty: "intermediate" as const,
-    duration: "60 hours",
-    progress: 35,
-  },
-  {
-    id: "fullstack-node",
-    title: "Full-Stack with Node.js",
-    description: "Build complete web applications with Node.js, Express, MongoDB, and React. Authentication, APIs, and deployment.",
-    difficulty: "advanced" as const,
-    duration: "80 hours",
-    progress: 12,
-  },
-  {
-    id: "typescript-deep-dive",
-    title: "TypeScript Deep Dive",
-    description: "Master TypeScript for large-scale applications. Advanced types, generics, decorators, and architectural patterns.",
-    difficulty: "intermediate" as const,
-    duration: "35 hours",
-    progress: 0,
-  },
-  {
-    id: "ui-ux-design",
-    title: "UI/UX Design Principles",
-    description: "Learn design thinking, user research, wireframing, prototyping, and modern design tools like Figma.",
-    difficulty: "beginner" as const,
-    duration: "25 hours",
-    progress: 0,
-  },
-  {
-    id: "system-design",
-    title: "System Design & Architecture",
-    description: "Design scalable systems. Load balancing, caching, databases, microservices, and distributed systems.",
-    difficulty: "advanced" as const,
-    duration: "50 hours",
-    progress: 0,
-  },
-];
+import { useExternalRoadmaps } from "@/hooks/useExternalApi";
+import * as React from "react";
 
 const Tracks = () => {
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [difficultyFilter, setDifficultyFilter] = React.useState("all");
+  const [sortBy, setSortBy] = React.useState("popular");
+
+  const { data: roadmaps, isLoading } = useExternalRoadmaps();
+
+  const filteredRoadmaps = React.useMemo(() => {
+    if (!roadmaps) return [];
+    
+    let filtered = roadmaps.filter(roadmap => {
+      const matchesSearch = roadmap.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        roadmap.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
+    });
+
+    if (sortBy === "recent") {
+      filtered = filtered.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
+
+    return filtered;
+  }, [roadmaps, searchQuery, difficultyFilter, sortBy]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main className="container mx-auto px-6 pt-24 pb-16">
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <span>Loading tracks...</span>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -82,35 +71,40 @@ const Tracks = () => {
               <Input
                 placeholder="Search tracks..."
                 className="pl-10 glass-surface"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Select defaultValue="all">
-              <SelectTrigger className="w-full md:w-48 glass-surface">
-                <SelectValue placeholder="Difficulty" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                <SelectItem value="beginner">Beginner</SelectItem>
-                <SelectItem value="intermediate">Intermediate</SelectItem>
-                <SelectItem value="advanced">Advanced</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select defaultValue="popular">
+            <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-full md:w-48 glass-surface">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="popular">Most Popular</SelectItem>
                 <SelectItem value="recent">Most Recent</SelectItem>
-                <SelectItem value="duration">Duration</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockTracks.map((track, index) => (
-              <TrackCard key={track.id} {...track} delay={index * 0.1} />
-            ))}
+            {filteredRoadmaps.length === 0 ? (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                No tracks found matching your criteria
+              </div>
+            ) : (
+              filteredRoadmaps.map((roadmap, index) => (
+                <TrackCard 
+                  key={roadmap._id} 
+                  id={roadmap._id}
+                  title={roadmap.title}
+                  description={roadmap.description || ""}
+                  difficulty="intermediate"
+                  duration={`${roadmap.sections?.length || 0} sections`}
+                  progress={0}
+                  delay={index * 0.1}
+                />
+              ))
+            )}
           </div>
         </motion.div>
       </main>

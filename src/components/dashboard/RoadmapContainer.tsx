@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useExternalRoadmap } from "@/hooks/useExternalRoadmap";
+import { useExternalRoadmaps, useRoadmapSections } from "@/hooks/useExternalApi";
 import { RoadmapVisualizer } from "./RoadmapVisualizer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function RoadmapContainer() {
-  const { data: roadmaps, isLoading, isError, error, refetch } = useExternalRoadmap();
+  const { data: roadmaps, isLoading, isError, error, refetch } = useExternalRoadmaps();
 
   if (isLoading) {
     return (
@@ -82,12 +82,12 @@ export function RoadmapContainer() {
         </Button>
       </div>
 
-      <Tabs defaultValue={roadmaps[0]?.id} className="w-full">
+      <Tabs defaultValue={roadmaps[0]?._id} className="w-full">
         <TabsList className="bg-card/50 border border-border p-1">
           {roadmaps.map((roadmap) => (
             <TabsTrigger
-              key={roadmap.id}
-              value={roadmap.id}
+              key={roadmap._id}
+              value={roadmap._id}
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-neon-cyan/20 data-[state=active]:to-neon-purple/20 data-[state=active]:text-neon-cyan"
             >
               {roadmap.title}
@@ -95,7 +95,7 @@ export function RoadmapContainer() {
           ))}
         </TabsList>
         {roadmaps.map((roadmap) => (
-          <TabsContent key={roadmap.id} value={roadmap.id} className="mt-6">
+          <TabsContent key={roadmap._id} value={roadmap._id} className="mt-6">
             <RoadmapVisualizer roadmap={roadmap} />
           </TabsContent>
         ))}
