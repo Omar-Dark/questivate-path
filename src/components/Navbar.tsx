@@ -36,6 +36,9 @@ export const Navbar = () => {
             <Link to="/tracks" className="text-sm font-medium hover:text-primary transition-colors">
               Tracks
             </Link>
+            <Link to="/quizzes" className="text-sm font-medium hover:text-primary transition-colors">
+              Quizzes
+            </Link>
             <Link to="/projects" className="text-sm font-medium hover:text-primary transition-colors">
               Projects
             </Link>
