@@ -33,11 +33,14 @@ export const Navbar = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/tracks" className="text-sm font-medium hover:text-primary transition-colors">
-              Tracks
+            <Link to="/roadmaps" className="text-sm font-medium hover:text-primary transition-colors">
+              Roadmaps
             </Link>
             <Link to="/quizzes" className="text-sm font-medium hover:text-primary transition-colors">
               Quizzes
+            </Link>
+            <Link to="/tracks" className="text-sm font-medium hover:text-primary transition-colors">
+              Tracks
             </Link>
             <Link to="/projects" className="text-sm font-medium hover:text-primary transition-colors">
               Projects

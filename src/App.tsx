@@ -15,6 +15,7 @@ import DashboardNew from "./pages/DashboardNew";
 import Quiz from "./pages/Quiz";
 import QuizResults from "./pages/QuizResults";
 import Quizzes from "./pages/Quizzes";
+import Roadmaps from "./pages/Roadmaps";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -46,6 +47,8 @@ const App = () => (
             <Route path="/dashboard" element={<DashboardNew />} />
             <Route path="/tracks" element={<Tracks />} />
             <Route path="/track/:id" element={<TrackDetail />} />
+            <Route path="/roadmaps" element={<Roadmaps />} />
+            <Route path="/roadmap/:id" element={<TrackDetail />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/quizzes" element={<Quizzes />} />
             <Route path="/quiz/:id" element={<Quiz />} />
