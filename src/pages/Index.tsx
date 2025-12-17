@@ -4,10 +4,9 @@ import { Card } from "@/components/ui/card";
 import { ArrowRight, BookOpen, Trophy, Users, Zap, Target, Brain, Sparkles } from "lucide-react";
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth";
+import { useExternalRoadmaps } from "@/hooks/useExternalApi";
+import { isAuthenticated } from "@/lib/externalApi";
 
 const features = [
   {
@@ -22,13 +21,13 @@ const features = [
   },
   {
     icon: Brain,
-    title: "100-Question Quizzes",
-    description: "Test your knowledge with comprehensive quizzes and detailed mistake reviews",
+    title: "Comprehensive Quizzes",
+    description: "Test your knowledge with quizzes and detailed mistake reviews",
   },
   {
     icon: Target,
-    title: "50+ Project Ideas",
-    description: "Practice with real-world projects and get AI-generated suggestions",
+    title: "Real Resources",
+    description: "Access curated articles, videos, and documentation",
   },
   {
     icon: Zap,
@@ -43,53 +42,17 @@ const features = [
 ];
 
 const Index = () => {
-  const { user } = useAuth();
   const { scrollYProgress } = useScroll();
   const [currentTime, setCurrentTime] = useState(new Date().getHours());
   
-  // Parallax transforms
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   
-  // Mouse tracking
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const smoothMouseX = useSpring(mouseX, { damping: 50, stiffness: 300 });
   const smoothMouseY = useSpring(mouseY, { damping: 50, stiffness: 300 });
 
-  // Fetch roadmaps
-  const { data: roadmaps } = useQuery({
-    queryKey: ["roadmaps"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("roadmaps")
-        .select("*")
-        .eq("published", true)
-        .limit(6);
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch user progress
-  const { data: userProgressData } = useQuery({
-    queryKey: ["userProgress", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("user_progress")
-        .select("*")
-        .eq("user_id", user.id);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
-  const getProgressForRoadmap = (roadmapId: string) => {
-    if (!userProgressData) return 0;
-    const progress = userProgressData.find(p => p.roadmap_id === roadmapId);
-    return progress?.progress_percent || 0;
-  };
+  const { data: roadmaps } = useExternalRoadmaps();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -123,7 +86,6 @@ const Index = () => {
       
       {/* Parallax Hero Section */}
       <section className="relative h-screen overflow-hidden">
-        {/* Animated Background Layers */}
         <motion.div 
           style={{ y: backgroundY }}
           className="absolute inset-0 -z-20"
@@ -137,7 +99,6 @@ const Index = () => {
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary-light/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "1s" }} />
         </motion.div>
 
-        {/* Floating particles */}
         <div className="absolute inset-0 -z-10">
           {[...Array(20)].map((_, i) => (
             <motion.div
@@ -165,7 +126,6 @@ const Index = () => {
             style={{ x: smoothMouseX, y: smoothMouseY }}
             className="space-y-8 max-w-4xl"
           >
-            {/* Letter-by-letter animated title */}
             <div className="space-y-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -257,8 +217,8 @@ const Index = () => {
               className="flex items-center gap-8 pt-8"
             >
               {[
-                { value: "50+", label: "Learning Tracks" },
-                { value: "100+", label: "Projects" },
+                { value: `${roadmaps?.length || 0}+`, label: "Learning Tracks" },
+                { value: "100+", label: "Resources" },
                 { value: "10K+", label: "Students" },
               ].map((stat, i) => (
                 <motion.div
@@ -278,7 +238,6 @@ const Index = () => {
           </motion.div>
         </div>
 
-        {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -295,7 +254,7 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* 3D Carousel Section */}
+      {/* Roadmaps Section */}
       <section className="py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
         
@@ -316,9 +275,9 @@ const Index = () => {
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {roadmaps?.map((roadmap, index) => (
+            {roadmaps?.slice(0, 6).map((roadmap, index) => (
               <motion.div
-                key={roadmap.id}
+                key={roadmap._id}
                 initial={{ opacity: 0, y: 50, rotateY: -15 }}
                 whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
                 viewport={{ once: true }}
@@ -330,60 +289,19 @@ const Index = () => {
                 }}
                 className="group"
               >
-                <Link to={`/track/${roadmap.slug}`}>
+                <Link to={`/roadmap/${roadmap._id}`}>
                   <Card className="glass-card backdrop-blur-xl border-primary/20 hover:border-primary/50 transition-all duration-300 overflow-hidden h-full">
-                    {roadmap.cover_image_url && (
-                      <div className="relative h-48 overflow-hidden">
-                        <motion.img
-                          src={roadmap.cover_image_url}
-                          alt={roadmap.title}
-                          className="w-full h-full object-cover"
-                          whileHover={{ scale: 1.1 }}
-                          transition={{ duration: 0.6 }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
-                      </div>
-                    )}
                     <div className="p-6 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          roadmap.difficulty === 'beginner' 
-                            ? 'bg-primary/20 text-primary' 
-                            : roadmap.difficulty === 'intermediate'
-                            ? 'bg-primary-light/20 text-primary-light'
-                            : 'bg-accent/20 text-accent-foreground'
-                        }`}>
-                          {roadmap.difficulty}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {roadmap.estimated_hours}h
-                        </span>
-                      </div>
                       <h3 className="text-2xl font-display font-bold group-hover:text-primary transition-colors">
                         {roadmap.title}
                       </h3>
                       <p className="text-muted-foreground line-clamp-2">
                         {roadmap.description}
                       </p>
-                      {user && (
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Progress</span>
-                            <span className="font-semibold text-primary">
-                              {getProgressForRoadmap(roadmap.id)}%
-                            </span>
-                          </div>
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              whileInView={{ width: `${getProgressForRoadmap(roadmap.id)}%` }}
-                              viewport={{ once: true }}
-                              transition={{ duration: 1, delay: 0.5 }}
-                              className="h-full gradient-primary"
-                            />
-                          </div>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <BookOpen className="h-4 w-4" />
+                        {roadmap.sections?.length || 0} sections
+                      </div>
                     </div>
                   </Card>
                 </Link>
@@ -397,7 +315,7 @@ const Index = () => {
             viewport={{ once: true }}
             className="text-center mt-12"
           >
-            <Link to="/tracks">
+            <Link to="/roadmaps">
               <Button 
                 size="lg" 
                 variant="outline" 
@@ -411,7 +329,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Glassmorphism Features */}
+      {/* Features Section */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px]" />
@@ -441,24 +359,24 @@ const Index = () => {
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.6 }}
-                whileHover={{ 
-                  scale: 1.05, 
-                  rotateY: 5,
-                  transition: { duration: 0.3 }
-                }}
+                whileHover={{ scale: 1.05, y: -10 }}
+                className="group"
               >
-                <Card className="glass-card backdrop-blur-xl border-primary/20 p-8 space-y-4 h-full group hover:border-primary/50 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20">
-                  <motion.div 
-                    className="p-4 rounded-2xl gradient-primary w-fit"
-                    whileHover={{ rotate: 360, scale: 1.2 }}
-                    transition={{ duration: 0.6 }}
+                <Card className="glass-card backdrop-blur-xl h-full p-8 space-y-4 border-transparent hover:border-primary/30 transition-all duration-500 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <motion.div
+                    className="relative w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all duration-500"
+                    whileHover={{ rotate: [0, -10, 10, 0] }}
+                    transition={{ duration: 0.5 }}
                   >
                     <feature.icon className="h-8 w-8 text-white" />
                   </motion.div>
-                  <h3 className="text-2xl font-display font-bold group-hover:text-primary transition-colors">
+                  
+                  <h3 className="relative text-xl font-display font-bold group-hover:text-primary transition-colors">
                     {feature.title}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="relative text-muted-foreground">
                     {feature.description}
                   </p>
                 </Card>
@@ -468,93 +386,51 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Final CTA with Confetti Effect */}
-      <section className="py-24 relative">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <Card className="glass-card backdrop-blur-xl relative overflow-hidden border-primary/30">
-              <div className="absolute inset-0 gradient-primary opacity-10" />
-              <div className="absolute inset-0">
-                {[...Array(30)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute w-2 h-2 rounded-full"
-                    style={{
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                      background: `hsl(${Math.random() * 360}, 70%, 60%)`,
-                    }}
-                    animate={{
-                      y: [0, -20, 0],
-                      opacity: [0, 1, 0],
-                      scale: [0, 1.5, 0],
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      delay: Math.random() * 2,
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="relative p-16 md:p-24 text-center space-y-8">
-                <motion.h2 
-                  className="text-5xl md:text-7xl font-display font-bold"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                >
-                  Ready to Transform Your Future?
-                </motion.h2>
-                <motion.p 
-                  className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                >
-                  Join thousands of learners mastering tech skills with AI-powered guidance and structured roadmaps.
-                </motion.p>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.4 }}
-                  className="flex flex-col sm:flex-row gap-6 justify-center pt-8"
-                >
-                  <Link to="/auth">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button 
-                        size="lg" 
-                        className="gradient-primary text-white border-0 text-xl px-12 py-8 shadow-2xl hover:shadow-primary/50"
-                      >
-                        Start Free Today
-                        <Sparkles className="ml-2 h-6 w-6" />
-                      </Button>
-                    </motion.div>
-                  </Link>
-                  <Link to="/tracks">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button 
-                        size="lg" 
-                        variant="outline" 
-                        className="glass-card backdrop-blur-xl text-xl px-12 py-8 border-primary/30 hover:border-primary hover:bg-primary/10"
-                      >
-                        Browse Courses
-                      </Button>
-                    </motion.div>
-                  </Link>
-                </motion.div>
-              </div>
-            </Card>
-          </motion.div>
-        </div>
+      {/* CTA Section */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary-light/10 to-primary/20" />
+        
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="container mx-auto px-6 relative text-center space-y-8"
+        >
+          <h2 className="text-5xl md:text-6xl font-display font-bold">
+            Ready to Level Up?
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Join thousands of developers who are accelerating their careers with structured learning paths.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link to="/auth">
+              <Button 
+                size="lg" 
+                className="gradient-primary text-white border-0 text-lg px-10 py-7 shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:scale-105"
+              >
+                Get Started Free
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
       </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-border">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-muted-foreground">
+              © 2024 SkillPath. All rights reserved.
+            </p>
+            <div className="flex gap-6 text-muted-foreground">
+              <a href="#" className="hover:text-primary transition-colors">Privacy</a>
+              <a href="#" className="hover:text-primary transition-colors">Terms</a>
+              <a href="#" className="hover:text-primary transition-colors">Contact</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

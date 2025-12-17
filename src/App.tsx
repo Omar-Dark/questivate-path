@@ -7,11 +7,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { AIChat } from "@/components/AIChat";
 import Index from "./pages/Index";
-import Tracks from "./pages/TracksNew";
-import TrackDetail from "./pages/TrackDetailNew";
+import Tracks from "./pages/Tracks";
+import TrackDetail from "./pages/TrackDetail";
 import Projects from "./pages/Projects";
 import Auth from "./pages/Auth";
-import DashboardNew from "./pages/DashboardNew";
+import Dashboard from "./pages/Dashboard";
 import Quiz from "./pages/Quiz";
 import QuizResults from "./pages/QuizResults";
 import Quizzes from "./pages/Quizzes";
@@ -44,7 +44,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<DashboardNew />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/tracks" element={<Tracks />} />
             <Route path="/track/:id" element={<TrackDetail />} />
             <Route path="/roadmaps" element={<Roadmaps />} />
