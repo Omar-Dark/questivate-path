@@ -109,11 +109,7 @@ const Profile = () => {
     achievements: 0
   });
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth");
-    }
-  }, [user, authLoading, navigate]);
+  // Auth redirect removed for preview access
 
   useEffect(() => {
     if (user) {
