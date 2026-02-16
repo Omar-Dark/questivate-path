@@ -18,6 +18,7 @@ import Quizzes from "./pages/Quizzes";
 import Roadmaps from "./pages/Roadmaps";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/quiz/:id/results/:attemptId" element={<QuizResults />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <AIChat />

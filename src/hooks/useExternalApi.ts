@@ -16,9 +16,27 @@ import {
   login,
   signup,
   logout,
+  getAllUsers,
+  toggleUserRole,
+  createRoadmap,
+  updateRoadmap,
+  deleteRoadmap,
+  createSection,
+  updateSection,
+  deleteSection,
+  createResource,
+  updateResource,
+  deleteResource,
+  createQuiz,
+  updateQuiz,
+  deleteQuiz,
+  createQuestion,
+  updateQuestion,
+  deleteQuestion,
   ExternalRoadmap,
   ExternalSection,
   ExternalQuiz,
+  ExternalQuestion,
   ExternalResource,
   ExternalUser,
   RoadmapProgress,
@@ -190,5 +208,149 @@ export function useLogout() {
     onSuccess: () => {
       queryClient.clear();
     },
+  });
+}
+
+// ==================== ADMIN ====================
+
+export function useAllUsers() {
+  return useQuery<ExternalUser[]>({
+    queryKey: ['all-users'],
+    queryFn: getAllUsers,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useToggleUserRole() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: toggleUserRole,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['all-users'] }); },
+  });
+}
+
+export function useCreateRoadmap() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { title: string; description: string }) => createRoadmap(data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['external-roadmaps'] }); },
+  });
+}
+
+export function useUpdateRoadmap() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<ExternalRoadmap> }) => updateRoadmap(id, updates),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['external-roadmaps'] }); },
+  });
+}
+
+export function useDeleteRoadmap() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteRoadmap,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['external-roadmaps'] }); },
+  });
+}
+
+export function useCreateSection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ roadmapId, data }: { roadmapId: string; data: { title: string; description: string; difficulty?: string } }) =>
+      createSection(roadmapId, data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['roadmap-sections'] }); },
+  });
+}
+
+export function useUpdateSection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sectionId, updates }: { sectionId: string; updates: Partial<ExternalSection> }) =>
+      updateSection(sectionId, updates),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['roadmap-sections'] }); },
+  });
+}
+
+export function useDeleteSection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteSection,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['roadmap-sections'] }); },
+  });
+}
+
+export function useCreateResource() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sectionId, data }: { sectionId: string; data: { title: string; url: string; type: string } }) =>
+      createResource(sectionId, data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['section-resources'] }); },
+  });
+}
+
+export function useUpdateResource() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ resourceId, updates }: { resourceId: string; updates: Partial<ExternalResource> }) =>
+      updateResource(resourceId, updates),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['section-resources'] }); },
+  });
+}
+
+export function useDeleteResource() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteResource,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['section-resources'] }); },
+  });
+}
+
+export function useCreateQuiz() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { title: string; description: string }) => createQuiz(data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['external-quizzes'] }); },
+  });
+}
+
+export function useUpdateQuiz() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<ExternalQuiz> }) => updateQuiz(id, updates),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['external-quizzes'] }); },
+  });
+}
+
+export function useDeleteQuiz() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteQuiz,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['external-quizzes'] }); },
+  });
+}
+
+export function useCreateQuestion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ quizId, data }: { quizId: string; data: { question: string; answer: string; options: string[] } }) =>
+      createQuestion(quizId, data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['external-quiz'] }); },
+  });
+}
+
+export function useUpdateQuestion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ questionId, updates }: { questionId: string; updates: Partial<ExternalQuestion> }) =>
+      updateQuestion(questionId, updates),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['external-quiz'] }); },
+  });
+}
+
+export function useDeleteQuestion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteQuestion,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['external-quiz'] }); },
   });
 }

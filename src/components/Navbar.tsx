@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { BookOpen, User, Menu, LogOut, LayoutDashboard, Trophy } from "lucide-react";
+import { BookOpen, User, Menu, LogOut, LayoutDashboard, Trophy, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth";
@@ -89,6 +89,12 @@ export const Navbar = () => {
                     <Link to="/leaderboard" className="cursor-pointer">
                       <Trophy className="mr-2 h-4 w-4" />
                       Leaderboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin" className="cursor-pointer">
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin Panel
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
