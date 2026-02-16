@@ -297,6 +297,233 @@ export async function getQuestionById(questionId: string): Promise<ExternalQuest
   }
 }
 
+// ==================== ADMIN: USERS ====================
+
+export async function getAllUsers(): Promise<ExternalUser[]> {
+  const data = await fetchApi<{ success: boolean; users: ExternalUser[] }>('/users');
+  return data.users || [];
+}
+
+export async function getUserById(id: string): Promise<ExternalUser | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; user: ExternalUser }>(`/users/${id}`);
+    return data.user;
+  } catch {
+    return null;
+  }
+}
+
+export async function toggleUserRole(userId: string): Promise<ExternalUser | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; user: ExternalUser }>(`/users/${userId}/role`, {
+      method: 'PATCH',
+    });
+    return data.user;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteUser(): Promise<boolean> {
+  try {
+    await fetchApi('/users', { method: 'DELETE' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function uploadProfileImage(file: File): Promise<string | null> {
+  try {
+    const url = `${API_BASE}/users/upload-image?key=${API_KEY}`;
+    const formData = new FormData();
+    formData.append('image', file);
+    const token = localStorage.getItem('roadmap_auth_token');
+    const headers: HeadersInit = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(url, { method: 'POST', headers, body: formData });
+    const data = await response.json();
+    return data.imageUrl || data.url || null;
+  } catch {
+    return null;
+  }
+}
+
+// ==================== ADMIN: ROADMAPS CRUD ====================
+
+export async function createRoadmap(roadmap: { title: string; description: string }): Promise<ExternalRoadmap | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; roadmap: ExternalRoadmap }>('/roadmap', {
+      method: 'POST',
+      body: JSON.stringify(roadmap),
+    });
+    return data.roadmap;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateRoadmap(id: string, updates: Partial<ExternalRoadmap>): Promise<ExternalRoadmap | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; roadmap: ExternalRoadmap }>(`/roadmap/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    return data.roadmap;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteRoadmap(id: string): Promise<boolean> {
+  try {
+    await fetchApi(`/roadmap/${id}`, { method: 'DELETE' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ==================== ADMIN: SECTIONS CRUD ====================
+
+export async function createSection(roadmapId: string, section: { title: string; description: string; difficulty?: string }): Promise<ExternalSection | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; section: ExternalSection }>(`/roadmap/${roadmapId}/sections`, {
+      method: 'POST',
+      body: JSON.stringify(section),
+    });
+    return data.section;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateSection(sectionId: string, updates: Partial<ExternalSection>): Promise<ExternalSection | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; section: ExternalSection }>(`/sections/${sectionId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    return data.section;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteSection(sectionId: string): Promise<boolean> {
+  try {
+    await fetchApi(`/sections/${sectionId}`, { method: 'DELETE' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ==================== ADMIN: RESOURCES CRUD ====================
+
+export async function createResource(sectionId: string, resource: { title: string; url: string; type: string }): Promise<ExternalResource | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; resource: ExternalResource }>(`/sections/${sectionId}/resources`, {
+      method: 'POST',
+      body: JSON.stringify(resource),
+    });
+    return data.resource;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateResource(resourceId: string, updates: Partial<ExternalResource>): Promise<ExternalResource | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; resource: ExternalResource }>(`/resources/${resourceId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    return data.resource;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteResource(resourceId: string): Promise<boolean> {
+  try {
+    await fetchApi(`/resources/${resourceId}`, { method: 'DELETE' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ==================== ADMIN: QUIZZES CRUD ====================
+
+export async function createQuiz(quiz: { title: string; description: string }): Promise<ExternalQuiz | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; quiz: ExternalQuiz }>('/quiz', {
+      method: 'POST',
+      body: JSON.stringify(quiz),
+    });
+    return data.quiz;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateQuiz(id: string, updates: Partial<ExternalQuiz>): Promise<ExternalQuiz | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; quiz: ExternalQuiz }>(`/quiz/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    return data.quiz;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteQuiz(id: string): Promise<boolean> {
+  try {
+    await fetchApi(`/quiz/${id}`, { method: 'DELETE' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ==================== ADMIN: QUESTIONS CRUD ====================
+
+export async function createQuestion(quizId: string, question: { question: string; answer: string; options: string[] }): Promise<ExternalQuestion | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; question: ExternalQuestion }>(`/quiz/${quizId}/questions`, {
+      method: 'POST',
+      body: JSON.stringify(question),
+    });
+    return data.question;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateQuestion(questionId: string, updates: Partial<ExternalQuestion>): Promise<ExternalQuestion | null> {
+  try {
+    const data = await fetchApi<{ success: boolean; question: ExternalQuestion }>(`/questions/${questionId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    return data.question;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteQuestion(questionId: string): Promise<boolean> {
+  try {
+    await fetchApi(`/questions/${questionId}`, { method: 'DELETE' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ==================== AUTH STATE ====================
 
 export function isAuthenticated(): boolean {
