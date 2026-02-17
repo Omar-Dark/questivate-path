@@ -7,8 +7,18 @@ import { motion } from 'framer-motion';
 import { Loader2, AlertCircle, BookOpen, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+const dummyQuizzes = [
+  { _id: '1', title: 'JavaScript Fundamentals', description: 'Test your knowledge of JavaScript basics including variables, functions, closures, and ES6+ features.', rank: 'Beginner' },
+  { _id: '2', title: 'React & Hooks Deep Dive', description: 'Challenge yourself with questions on React components, hooks, state management, and performance optimization.', rank: 'Intermediate' },
+  { _id: '3', title: 'TypeScript Mastery', description: 'Explore advanced TypeScript concepts like generics, utility types, conditional types, and type guards.', rank: 'Advanced' },
+  { _id: '4', title: 'CSS & Tailwind', description: 'From flexbox to grid, animations to responsive design — prove your styling expertise.', rank: 'Beginner' },
+  { _id: '5', title: 'Node.js & Express', description: 'Backend fundamentals covering middleware, routing, authentication, and RESTful API design patterns.', rank: 'Intermediate' },
+  { _id: '6', title: 'Data Structures & Algorithms', description: 'Classic CS problems: arrays, trees, graphs, sorting, and dynamic programming challenges.', rank: 'Advanced' },
+];
+
 const Quizzes = () => {
-  const { data: quizzes, isLoading, error, refetch } = useExternalQuizzes();
+  const { data: apiQuizzes, isLoading, error, refetch } = useExternalQuizzes();
+  const quizzes = apiQuizzes && apiQuizzes.length > 0 ? apiQuizzes : dummyQuizzes;
 
   if (isLoading) {
     return (
