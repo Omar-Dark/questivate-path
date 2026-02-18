@@ -1,12 +1,35 @@
 import { motion } from "framer-motion";
-import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useExternalRoadmaps, useRoadmapSections } from "@/hooks/useExternalApi";
+import { useExternalRoadmaps } from "@/hooks/useExternalApi";
 import { RoadmapVisualizer } from "./RoadmapVisualizer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const dummyRoadmaps = [
+  {
+    _id: '1', title: 'Frontend Development', description: 'Master modern frontend technologies.',
+    sections: [
+      { _id: 's1', title: 'HTML & CSS Basics', description: 'Learn the building blocks of the web.', difficulty: 'beginner' },
+      { _id: 's2', title: 'JavaScript Fundamentals', description: 'Core JS concepts and ES6+.', difficulty: 'beginner' },
+      { _id: 's3', title: 'React & State Management', description: 'Component-based UI development.', difficulty: 'intermediate' },
+      { _id: 's4', title: 'Testing & Deployment', description: 'Write tests and deploy apps.', difficulty: 'advanced' },
+    ],
+    createdAt: '2025-01-01',
+  },
+  {
+    _id: '2', title: 'Backend Development', description: 'Learn server-side programming.',
+    sections: [
+      { _id: 's5', title: 'Node.js & Express', description: 'Build REST APIs.', difficulty: 'beginner' },
+      { _id: 's6', title: 'Databases & ORMs', description: 'SQL, NoSQL, and data modeling.', difficulty: 'intermediate' },
+      { _id: 's7', title: 'Authentication & Security', description: 'Secure your applications.', difficulty: 'advanced' },
+    ],
+    createdAt: '2025-02-01',
+  },
+];
+
 export function RoadmapContainer() {
-  const { data: roadmaps, isLoading, isError, error, refetch } = useExternalRoadmaps();
+  const { data: apiRoadmaps, isLoading, refetch } = useExternalRoadmaps();
+  const roadmaps = apiRoadmaps && apiRoadmaps.length > 0 ? apiRoadmaps : dummyRoadmaps;
 
   if (isLoading) {
     return (
@@ -19,47 +42,7 @@ export function RoadmapContainer() {
           <Loader2 className="h-12 w-12 animate-spin text-neon-cyan" />
           <div className="absolute inset-0 h-12 w-12 animate-ping bg-neon-cyan/20 rounded-full" />
         </div>
-        <p className="text-muted-foreground animate-pulse">Loading roadmaps from API...</p>
-      </motion.div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center justify-center py-16 space-y-4"
-      >
-        <div className="p-4 rounded-full bg-destructive/10">
-          <AlertCircle className="h-12 w-12 text-destructive" />
-        </div>
-        <div className="text-center space-y-2">
-          <h3 className="text-lg font-semibold">Failed to Load Roadmaps</h3>
-          <p className="text-muted-foreground max-w-md">
-            {error instanceof Error ? error.message : "Unable to fetch roadmap data. Please try again."}
-          </p>
-        </div>
-        <Button onClick={() => refetch()} variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Retry
-        </Button>
-      </motion.div>
-    );
-  }
-
-  if (!roadmaps || roadmaps.length === 0) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center py-16 space-y-4"
-      >
-        <p className="text-muted-foreground">No roadmaps available</p>
-        <Button onClick={() => refetch()} variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Refresh
-        </Button>
+        <p className="text-muted-foreground animate-pulse">Loading roadmaps...</p>
       </motion.div>
     );
   }
@@ -84,7 +67,7 @@ export function RoadmapContainer() {
 
       <Tabs defaultValue={roadmaps[0]?._id} className="w-full">
         <TabsList className="bg-card/50 border border-border p-1">
-          {roadmaps.map((roadmap) => (
+          {roadmaps.map((roadmap: any) => (
             <TabsTrigger
               key={roadmap._id}
               value={roadmap._id}
@@ -94,7 +77,7 @@ export function RoadmapContainer() {
             </TabsTrigger>
           ))}
         </TabsList>
-        {roadmaps.map((roadmap) => (
+        {roadmaps.map((roadmap: any) => (
           <TabsContent key={roadmap._id} value={roadmap._id} className="mt-6">
             <RoadmapVisualizer roadmap={roadmap} />
           </TabsContent>

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useExternalQuizzes } from '@/hooks/useExternalApi';
 import { motion } from 'framer-motion';
-import { Loader2, AlertCircle, BookOpen, ArrowRight } from 'lucide-react';
+import { Loader2, BookOpen, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const dummyQuizzes = [
@@ -17,7 +17,7 @@ const dummyQuizzes = [
 ];
 
 const Quizzes = () => {
-  const { data: apiQuizzes, isLoading, error, refetch } = useExternalQuizzes();
+  const { data: apiQuizzes, isLoading } = useExternalQuizzes();
   const quizzes = apiQuizzes && apiQuizzes.length > 0 ? apiQuizzes : dummyQuizzes;
 
   if (isLoading) {
@@ -29,19 +29,6 @@ const Quizzes = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
             <p className="text-muted-foreground">Loading quizzes...</p>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] gap-4">
-          <AlertCircle className="h-12 w-12 text-destructive" />
-          <p className="text-muted-foreground">Failed to load quizzes</p>
-          <Button onClick={() => refetch()}>Retry</Button>
         </div>
       </div>
     );

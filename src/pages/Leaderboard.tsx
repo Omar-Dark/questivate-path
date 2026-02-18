@@ -15,9 +15,19 @@ const Leaderboard = () => {
     fetchLeaderboard();
   }, []);
 
+  const dummyScorers = [
+    { user_id: '1', username: 'CodeMaster', avgScore: 96.5, bestScore: 100, count: 12 },
+    { user_id: '2', username: 'DevNinja', avgScore: 93.2, bestScore: 98, count: 10 },
+    { user_id: '3', username: 'ByteWizard', avgScore: 91.8, bestScore: 97, count: 15 },
+    { user_id: '4', username: 'PixelPro', avgScore: 88.4, bestScore: 95, count: 8 },
+    { user_id: '5', username: 'StackSurfer', avgScore: 85.1, bestScore: 92, count: 11 },
+    { user_id: '6', username: 'LogicLord', avgScore: 82.7, bestScore: 90, count: 9 },
+    { user_id: '7', username: 'SyntaxStar', avgScore: 80.3, bestScore: 88, count: 7 },
+    { user_id: '8', username: 'BugHunter', avgScore: 78.9, bestScore: 86, count: 6 },
+  ];
+
   const fetchLeaderboard = async () => {
     try {
-      // Get top scorers based on quiz attempts
       const { data } = await supabase
         .from('quiz_attempts')
         .select('user_id, percentage, quiz:quizzes(title), created_at')
@@ -25,52 +35,32 @@ const Leaderboard = () => {
         .order('created_at', { ascending: true })
         .limit(50);
 
-      if (data) {
-        // Group by user and calculate average
+      if (data && data.length > 0) {
         const userScores: Record<string, any> = {};
-        
         for (const attempt of data) {
           if (!userScores[attempt.user_id]) {
-            userScores[attempt.user_id] = {
-              user_id: attempt.user_id,
-              totalScore: 0,
-              count: 0,
-              bestScore: 0,
-            };
+            userScores[attempt.user_id] = { user_id: attempt.user_id, totalScore: 0, count: 0, bestScore: 0 };
           }
-          
           userScores[attempt.user_id].totalScore += attempt.percentage;
           userScores[attempt.user_id].count += 1;
-          userScores[attempt.user_id].bestScore = Math.max(
-            userScores[attempt.user_id].bestScore,
-            attempt.percentage
-          );
+          userScores[attempt.user_id].bestScore = Math.max(userScores[attempt.user_id].bestScore, attempt.percentage);
         }
-
-        // Fetch user profiles
         const userIds = Object.keys(userScores);
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('*')
-          .in('id', userIds);
-
+        const { data: profiles } = await supabase.from('profiles').select('*').in('id', userIds);
         const scoreboard = Object.values(userScores)
           .map((score: any) => {
             const profile = profiles?.find((p) => p.id === score.user_id);
-            return {
-              ...score,
-              avgScore: score.totalScore / score.count,
-              username: profile?.username || 'Anonymous',
-              avatar_url: profile?.avatar_url,
-            };
+            return { ...score, avgScore: score.totalScore / score.count, username: profile?.username || 'Anonymous', avatar_url: profile?.avatar_url };
           })
           .sort((a, b) => b.avgScore - a.avgScore)
           .slice(0, 100);
-
         setTopScorers(scoreboard);
+      } else {
+        setTopScorers(dummyScorers);
       }
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
+      setTopScorers(dummyScorers);
     } finally {
       setLoading(false);
     }

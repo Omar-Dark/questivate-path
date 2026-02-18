@@ -12,7 +12,18 @@ const Tracks = () => {
   const [difficultyFilter, setDifficultyFilter] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("popular");
 
-  const { data: roadmaps, isLoading } = useExternalRoadmaps();
+  const { data: apiRoadmaps, isLoading } = useExternalRoadmaps();
+
+  const dummyTracks = [
+    { _id: '1', title: 'JavaScript Essentials', description: 'Learn JavaScript from scratch including ES6+, async programming, and DOM manipulation.', sections: [{}, {}, {}], createdAt: '2025-01-01' },
+    { _id: '2', title: 'React Development', description: 'Build modern web applications with React, hooks, context, and routing.', sections: [{}, {}, {}, {}], createdAt: '2025-02-01' },
+    { _id: '3', title: 'TypeScript Fundamentals', description: 'Add type safety to your JavaScript projects with TypeScript generics, interfaces, and utility types.', sections: [{}, {}], createdAt: '2025-03-01' },
+    { _id: '4', title: 'CSS Mastery', description: 'From flexbox to grid, animations, custom properties, and responsive design patterns.', sections: [{}, {}, {}], createdAt: '2025-01-15' },
+    { _id: '5', title: 'Node.js Backend', description: 'Server-side JavaScript with Express, middleware, databases, and deployment.', sections: [{}, {}, {}, {}], createdAt: '2025-02-15' },
+    { _id: '6', title: 'Git & DevOps', description: 'Version control, CI/CD pipelines, Docker, and cloud deployment essentials.', sections: [{}, {}], createdAt: '2025-03-15' },
+  ];
+
+  const roadmaps = apiRoadmaps && apiRoadmaps.length > 0 ? apiRoadmaps : dummyTracks;
 
   const filteredRoadmaps = React.useMemo(() => {
     if (!roadmaps) return [];

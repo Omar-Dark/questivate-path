@@ -254,7 +254,14 @@ const Profile = () => {
     }
   };
 
-  if (authLoading || loading) {
+  // Use dummy data when no user is logged in
+  const displayUsername = username || "johndoe";
+  const displayFullName = fullName || "John Doe";
+  const displayBio = bio || "Passionate full-stack developer with a love for clean code and learning new technologies.";
+  const displayLocation = location || "San Francisco, CA";
+  const displayStats = user ? stats : { totalProgress: 5, completedTracks: 2, quizzesTaken: 8, achievements: 3 };
+
+  if (authLoading) {
     return (
       <div className="min-h-screen">
         <Navbar />
@@ -294,7 +301,7 @@ const Profile = () => {
                     <Avatar className="h-24 w-24">
                       <AvatarImage src={avatarUrl} />
                       <AvatarFallback className="gradient-primary text-white text-2xl">
-                        {(fullName || username).charAt(0).toUpperCase() || 'U'}
+                        {(displayFullName || displayUsername).charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <Button 
@@ -558,7 +565,7 @@ const Profile = () => {
                       </div>
                       <span className="font-medium">Active Tracks</span>
                     </div>
-                    <span className="text-2xl font-bold">{stats.totalProgress}</span>
+                    <span className="text-2xl font-bold">{displayStats.totalProgress}</span>
                   </div>
 
                   <div className="flex items-center justify-between p-4 rounded-lg glass-surface">
@@ -568,7 +575,7 @@ const Profile = () => {
                       </div>
                       <span className="font-medium">Completed</span>
                     </div>
-                    <span className="text-2xl font-bold">{stats.completedTracks}</span>
+                    <span className="text-2xl font-bold">{displayStats.completedTracks}</span>
                   </div>
 
                   <div className="flex items-center justify-between p-4 rounded-lg glass-surface">
@@ -578,7 +585,7 @@ const Profile = () => {
                       </div>
                       <span className="font-medium">Quizzes</span>
                     </div>
-                    <span className="text-2xl font-bold">{stats.quizzesTaken}</span>
+                    <span className="text-2xl font-bold">{displayStats.quizzesTaken}</span>
                   </div>
 
                   <div className="flex items-center justify-between p-4 rounded-lg glass-surface">
@@ -588,7 +595,7 @@ const Profile = () => {
                       </div>
                       <span className="font-medium">Achievements</span>
                     </div>
-                    <span className="text-2xl font-bold">{stats.achievements}</span>
+                    <span className="text-2xl font-bold">{displayStats.achievements}</span>
                   </div>
                 </div>
               </Card>
