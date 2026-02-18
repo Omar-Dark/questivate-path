@@ -4,11 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useExternalRoadmaps } from '@/hooks/useExternalApi';
 import { motion } from 'framer-motion';
-import { Loader2, AlertCircle, Map, ArrowRight, BookOpen } from 'lucide-react';
+import { Loader2, Map, ArrowRight, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+const dummyRoadmaps = [
+  { _id: '1', title: 'Frontend Development', description: 'Master modern frontend technologies from HTML/CSS to React, TypeScript, and state management.', sections: [{}, {}, {}, {}] },
+  { _id: '2', title: 'Backend Development', description: 'Learn server-side programming with Node.js, databases, REST APIs, and authentication.', sections: [{}, {}, {}] },
+  { _id: '3', title: 'Full Stack Web Development', description: 'Comprehensive path covering both frontend and backend, deployment, and DevOps basics.', sections: [{}, {}, {}, {}, {}] },
+  { _id: '4', title: 'Data Science & ML', description: 'From Python basics to machine learning, data visualization, and AI model deployment.', sections: [{}, {}, {}, {}] },
+];
+
 const Roadmaps = () => {
-  const { data: roadmaps, isLoading, error, refetch } = useExternalRoadmaps();
+  const { data: apiRoadmaps, isLoading } = useExternalRoadmaps();
+  const roadmaps = apiRoadmaps && apiRoadmaps.length > 0 ? apiRoadmaps : dummyRoadmaps;
 
   if (isLoading) {
     return (
@@ -19,19 +27,6 @@ const Roadmaps = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
             <p className="text-muted-foreground">Loading roadmaps...</p>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] gap-4">
-          <AlertCircle className="h-12 w-12 text-destructive" />
-          <p className="text-muted-foreground">Failed to load roadmaps</p>
-          <Button onClick={() => refetch()}>Retry</Button>
         </div>
       </div>
     );
@@ -66,7 +61,7 @@ const Roadmaps = () => {
             </Card>
           ) : (
             <div className="grid gap-6 md:grid-cols-2">
-              {roadmaps.map((roadmap, idx) => (
+              {roadmaps.map((roadmap: any, idx: number) => (
                 <motion.div
                   key={roadmap._id}
                   initial={{ opacity: 0, y: 20 }}
@@ -80,7 +75,7 @@ const Roadmaps = () => {
                           {roadmap.title}
                         </h2>
                         <Badge variant="secondary">
-                          {roadmap.sections.length} sections
+                          {roadmap.sections?.length || 0} sections
                         </Badge>
                       </div>
                       
