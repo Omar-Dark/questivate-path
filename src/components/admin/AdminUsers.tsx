@@ -7,9 +7,19 @@ import { useAllUsers, useToggleUserRole } from '@/hooks/useExternalApi';
 import { Loader2, ShieldCheck, User, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
+const dummyUsers = [
+  { _id: '1', username: 'admin_sarah', email: 'sarah@example.com', role: 'admin', createdAt: '2025-08-15T10:30:00Z' },
+  { _id: '2', username: 'john_dev', email: 'john@example.com', role: 'user', createdAt: '2025-09-01T14:20:00Z' },
+  { _id: '3', username: 'maria_learns', email: 'maria@example.com', role: 'user', createdAt: '2025-10-12T08:45:00Z' },
+  { _id: '4', username: 'alex_code', email: 'alex@example.com', role: 'user', createdAt: '2025-11-03T16:00:00Z' },
+  { _id: '5', username: 'mod_james', email: 'james@example.com', role: 'admin', createdAt: '2025-07-20T09:15:00Z' },
+];
+
 export const AdminUsers = () => {
-  const { data: users, isLoading, refetch } = useAllUsers();
+  const { data: apiUsers, isLoading, refetch } = useAllUsers();
   const toggleRole = useToggleUserRole();
+
+  const users = apiUsers?.length ? apiUsers : dummyUsers;
 
   const handleToggleRole = (userId: string) => {
     toggleRole.mutate(userId, {
@@ -35,52 +45,48 @@ export const AdminUsers = () => {
         </Button>
       </div>
 
-      {!users?.length ? (
-        <p className="text-muted-foreground text-center py-8">No users found.</p>
-      ) : (
-        <div className="overflow-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Username</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+      <div className="overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Username</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Joined</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((u) => (
+              <TableRow key={u._id}>
+                <TableCell className="font-medium flex items-center gap-2">
+                  {u.role === 'admin' ? <ShieldCheck className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-muted-foreground" />}
+                  {u.username}
+                </TableCell>
+                <TableCell>{u.email}</TableCell>
+                <TableCell>
+                  <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
+                    {u.role || 'user'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleToggleRole(u._id)}
+                    disabled={toggleRole.isPending}
+                  >
+                    Toggle Role
+                  </Button>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((u) => (
-                <TableRow key={u._id}>
-                  <TableCell className="font-medium flex items-center gap-2">
-                    {u.role === 'admin' ? <ShieldCheck className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-muted-foreground" />}
-                    {u.username}
-                  </TableCell>
-                  <TableCell>{u.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
-                      {u.role || 'user'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleToggleRole(u._id)}
-                      disabled={toggleRole.isPending}
-                    >
-                      Toggle Role
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </Card>
   );
 };

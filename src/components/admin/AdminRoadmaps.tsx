@@ -26,6 +26,32 @@ import { Loader2, Plus, Pencil, Trash2, ChevronDown, ChevronRight, Link as LinkI
 import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
+const dummyRoadmaps = [
+  {
+    _id: 'dr1',
+    title: 'Frontend Development',
+    description: 'Master modern frontend technologies from HTML/CSS to React and beyond.',
+    sections: [
+      { _id: 'ds1', title: 'HTML & CSS Basics', description: 'Learn the building blocks of the web', difficulty: 'Beginner', resources: [] },
+      { _id: 'ds2', title: 'JavaScript Fundamentals', description: 'Core JS concepts and ES6+', difficulty: 'Beginner', resources: [] },
+    ],
+  },
+  {
+    _id: 'dr2',
+    title: 'Backend Development',
+    description: 'Build robust server-side applications with Node.js, databases, and APIs.',
+    sections: [
+      { _id: 'ds3', title: 'Node.js Basics', description: 'Server-side JavaScript', difficulty: 'Intermediate', resources: [] },
+    ],
+  },
+  {
+    _id: 'dr3',
+    title: 'Data Science',
+    description: 'Explore data analysis, machine learning, and statistical modeling.',
+    sections: [],
+  },
+];
+
 // ======== Roadmap Form ========
 const RoadmapForm = ({ initial, onSubmit, onCancel }: {
   initial?: { title: string; description: string };
@@ -283,13 +309,15 @@ const RoadmapSections = ({ roadmapId }: { roadmapId: string }) => {
 
 // ======== Main AdminRoadmaps ========
 export const AdminRoadmaps = () => {
-  const { data: roadmaps, isLoading, refetch } = useExternalRoadmaps();
+  const { data: apiRoadmaps, isLoading, refetch } = useExternalRoadmaps();
   const createRoadmap = useCreateRoadmap();
   const updateRoadmap = useUpdateRoadmap();
   const deleteRoadmap = useDeleteRoadmap();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ExternalRoadmap | null>(null);
   const [expandedRoadmap, setExpandedRoadmap] = useState<string | null>(null);
+
+  const roadmaps = apiRoadmaps?.length ? apiRoadmaps : dummyRoadmaps as any[];
 
   if (isLoading) {
     return (
