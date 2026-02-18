@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -185,9 +186,12 @@ const Projects = () => {
                       <Button
                         className="w-full group-hover:gradient-primary group-hover:text-white transition-all"
                         variant="outline"
+                        asChild
                       >
-                        <span>Start Project</span>
-                        <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        <Link to={`/project/${project.id}`}>
+                          <span>Start Project</span>
+                          <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Link>
                       </Button>
                     </div>
                   </div>

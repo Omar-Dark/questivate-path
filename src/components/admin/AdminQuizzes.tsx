@@ -21,6 +21,32 @@ import { ExternalQuiz, ExternalQuestion } from '@/lib/externalApi';
 import { Loader2, Plus, Pencil, Trash2, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
+const dummyQuizzes = [
+  {
+    _id: 'dq1',
+    title: 'HTML & CSS Fundamentals',
+    description: 'Test your knowledge of basic web technologies.',
+    questions: [
+      { _id: 'dqq1', question: 'What does HTML stand for?', answer: 'HyperText Markup Language', options: ['HyperText Markup Language', 'High Tech Modern Language', 'Home Tool Markup Language', 'Hyper Transfer Markup Language'] },
+      { _id: 'dqq2', question: 'Which CSS property controls text size?', answer: 'font-size', options: ['text-size', 'font-size', 'text-style', 'font-style'] },
+    ],
+  },
+  {
+    _id: 'dq2',
+    title: 'JavaScript Basics',
+    description: 'Core JavaScript concepts quiz.',
+    questions: [
+      { _id: 'dqq3', question: 'Which keyword declares a constant?', answer: 'const', options: ['var', 'let', 'const', 'define'] },
+    ],
+  },
+  {
+    _id: 'dq3',
+    title: 'React Essentials',
+    description: 'Test your understanding of React fundamentals.',
+    questions: [],
+  },
+];
+
 // ======== Quiz Form ========
 const QuizForm = ({ initial, onSubmit, onCancel }: {
   initial?: { title: string; description: string };
@@ -102,7 +128,7 @@ const QuestionForm = ({ initial, onSubmit, onCancel }: {
 };
 
 // ======== Quiz Questions Panel ========
-const QuizQuestions = ({ quizId }: { quizId: string }) => {
+const QuizQuestions = ({ quizId, dummyQuestions }: { quizId: string; dummyQuestions?: ExternalQuestion[] }) => {
   const { data, isLoading, refetch } = useExternalQuiz(quizId);
   const createQuestion = useCreateQuestion();
   const updateQuestion = useUpdateQuestion();
@@ -112,7 +138,7 @@ const QuizQuestions = ({ quizId }: { quizId: string }) => {
 
   if (isLoading) return <Loader2 className="h-4 w-4 animate-spin text-primary mx-auto" />;
 
-  const questions = data?.quiz?.questions || [];
+  const questions = data?.quiz?.questions || dummyQuestions || [];
 
   return (
     <div className="space-y-3 mt-3">
@@ -145,7 +171,7 @@ const QuizQuestions = ({ quizId }: { quizId: string }) => {
         </Card>
       )}
 
-      {questions.map((q, i) => (
+      {questions.map((q: any, i: number) => (
         <div key={q._id} className="rounded-lg border border-border/50 bg-muted/20 p-3 space-y-2">
           <div className="flex items-start justify-between">
             <div className="flex gap-2 items-start">
@@ -163,7 +189,7 @@ const QuizQuestions = ({ quizId }: { quizId: string }) => {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-1 pl-8">
-            {q.options.map((opt, j) => (
+            {q.options.map((opt: string, j: number) => (
               <p key={j} className={`text-xs px-2 py-1 rounded ${opt === q.answer ? 'bg-primary/20 text-primary font-medium' : 'text-muted-foreground'}`}>
                 {opt}
               </p>
@@ -181,13 +207,15 @@ const QuizQuestions = ({ quizId }: { quizId: string }) => {
 
 // ======== Main AdminQuizzes ========
 export const AdminQuizzes = () => {
-  const { data: quizzes, isLoading, refetch } = useExternalQuizzes();
+  const { data: apiQuizzes, isLoading, refetch } = useExternalQuizzes();
   const createQuiz = useCreateQuiz();
   const updateQuiz = useUpdateQuiz();
   const deleteQuiz = useDeleteQuiz();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ExternalQuiz | null>(null);
   const [expandedQuiz, setExpandedQuiz] = useState<string | null>(null);
+
+  const quizzes = apiQuizzes?.length ? apiQuizzes : dummyQuizzes as any[];
 
   if (isLoading) {
     return (
@@ -230,7 +258,7 @@ export const AdminQuizzes = () => {
       )}
 
       <div className="space-y-3">
-        {quizzes?.map((q) => (
+        {quizzes?.map((q: any) => (
           <Collapsible
             key={q._id}
             open={expandedQuiz === q._id}
@@ -257,7 +285,7 @@ export const AdminQuizzes = () => {
               </div>
               <CollapsibleContent className="px-4 pb-4">
                 <p className="text-sm text-muted-foreground mb-3">{q.description}</p>
-                <QuizQuestions quizId={q._id} />
+                <QuizQuestions quizId={q._id} dummyQuestions={q.questions} />
               </CollapsibleContent>
             </Card>
           </Collapsible>

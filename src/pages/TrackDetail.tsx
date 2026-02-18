@@ -20,7 +20,7 @@ import {
   AlertCircle,
   ArrowLeft
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
 const resourceIcons = {
@@ -28,25 +28,72 @@ const resourceIcons = {
   article: FileText,
 };
 
+const dummyRoadmaps: Record<string, any> = {
+  '1': {
+    _id: '1', title: 'Frontend Development', description: 'Master modern frontend technologies including HTML, CSS, JavaScript, and React. Build responsive, accessible web applications.',
+  },
+  '2': {
+    _id: '2', title: 'Backend Development', description: 'Learn server-side programming with Node.js, Express, databases, and API design.',
+  },
+  '3': {
+    _id: '3', title: 'Data Science', description: 'Explore data analysis, machine learning, and statistical modeling with Python.',
+  },
+  '4': {
+    _id: '4', title: 'Mobile Development', description: 'Build cross-platform mobile apps with React Native and Flutter.',
+  },
+};
+
+const dummySections: Record<string, any[]> = {
+  '1': [
+    { _id: 's1', title: 'HTML & CSS Basics', description: 'Learn the fundamentals of web structure and styling', difficulty: 'Beginner', resources: [
+      { _id: 'r1', title: 'HTML Crash Course', url: '#', type: 'video' },
+      { _id: 'r2', title: 'CSS Flexbox Guide', url: '#', type: 'article' },
+      { _id: 'r3', title: 'Responsive Design Principles', url: '#', type: 'article' },
+    ]},
+    { _id: 's2', title: 'JavaScript Fundamentals', description: 'Core JavaScript concepts including variables, functions, and DOM manipulation', difficulty: 'Beginner', resources: [
+      { _id: 'r4', title: 'JavaScript for Beginners', url: '#', type: 'video' },
+      { _id: 'r5', title: 'ES6+ Features Guide', url: '#', type: 'article' },
+    ]},
+    { _id: 's3', title: 'React Essentials', description: 'Component-based architecture, hooks, and state management', difficulty: 'Intermediate', resources: [
+      { _id: 'r6', title: 'React Official Tutorial', url: '#', type: 'article' },
+      { _id: 'r7', title: 'React Hooks Deep Dive', url: '#', type: 'video' },
+    ]},
+  ],
+  '2': [
+    { _id: 's4', title: 'Node.js Basics', description: 'Server-side JavaScript runtime', difficulty: 'Beginner', resources: [
+      { _id: 'r8', title: 'Node.js Getting Started', url: '#', type: 'video' },
+    ]},
+    { _id: 's5', title: 'REST API Design', description: 'Build RESTful APIs with Express', difficulty: 'Intermediate', resources: [
+      { _id: 'r9', title: 'REST API Best Practices', url: '#', type: 'article' },
+    ]},
+  ],
+  '3': [
+    { _id: 's6', title: 'Python Fundamentals', description: 'Python programming basics for data science', difficulty: 'Beginner', resources: [
+      { _id: 'r10', title: 'Python for Data Science', url: '#', type: 'video' },
+    ]},
+  ],
+  '4': [
+    { _id: 's7', title: 'React Native Setup', description: 'Environment setup and first app', difficulty: 'Beginner', resources: [
+      { _id: 'r11', title: 'React Native Quickstart', url: '#', type: 'article' },
+    ]},
+  ],
+};
+
 const TrackDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [completedResources, setCompletedResources] = useState<Set<string>>(new Set());
 
-  // Fetch roadmap data from external API
-  const { data: roadmap, isLoading: roadmapLoading, error: roadmapError } = useExternalRoadmap(id);
-  
-  // Fetch sections with resources
-  const { data: sections, isLoading: sectionsLoading } = useRoadmapSections(id);
-
-  // Fetch quizzes
+  const { data: apiRoadmap, isLoading: roadmapLoading, error: roadmapError } = useExternalRoadmap(id);
+  const { data: apiSections, isLoading: sectionsLoading } = useRoadmapSections(id);
   const { data: quizzes } = useExternalQuizzes();
+
+  const roadmap = apiRoadmap || (id ? dummyRoadmaps[id] : null);
+  const sections = apiSections?.length ? apiSections : (id ? dummySections[id] || [] : []);
 
   const handleResourceClick = (resourceUrl: string, resourceId: string) => {
     if (resourceUrl) {
       window.open(resourceUrl, "_blank");
-      
-      // Mark as completed locally
       const newCompleted = new Set(completedResources);
       newCompleted.add(resourceId);
       setCompletedResources(newCompleted);
@@ -55,12 +102,10 @@ const TrackDetail = () => {
   };
 
   const getTotalResources = () => {
-    return sections?.reduce((acc, section) => acc + section.resources.length, 0) || 0;
+    return sections?.reduce((acc: number, section: any) => acc + section.resources.length, 0) || 0;
   };
 
-  const getCompletedCount = () => {
-    return completedResources.size;
-  };
+  const getCompletedCount = () => completedResources.size;
 
   const getProgressPercent = () => {
     const total = getTotalResources();
@@ -86,7 +131,7 @@ const TrackDetail = () => {
     );
   }
 
-  if (roadmapError || !roadmap) {
+  if (!roadmap) {
     return (
       <div className="min-h-screen">
         <Navbar />
@@ -129,8 +174,8 @@ const TrackDetail = () => {
                 <h3 className="font-display font-semibold">Contents</h3>
               </div>
               <nav className="space-y-1">
-                {sections?.map((section) => {
-                  const sectionCompleted = section.resources.every(r => 
+                {sections?.map((section: any) => {
+                  const sectionCompleted = section.resources.every((r: any) => 
                     completedResources.has(r._id)
                   );
                   return (
@@ -174,7 +219,6 @@ const TrackDetail = () => {
                 {roadmap.description}
               </p>
 
-              {/* Related Quizzes */}
               {quizzes && quizzes.length > 0 && (
                 <Card className="glass-card p-4">
                   <div className="flex items-center gap-3">
@@ -193,14 +237,13 @@ const TrackDetail = () => {
 
             <Separator />
 
-            {/* Sections Timeline */}
             <div className="space-y-8">
               {(!sections || sections.length === 0) ? (
                 <Card className="glass-card p-8 text-center">
                   <p className="text-muted-foreground">No sections available for this roadmap yet.</p>
                 </Card>
               ) : (
-                sections.map((section, sectionIdx) => (
+                sections.map((section: any, sectionIdx: number) => (
                   <motion.div
                     key={section._id}
                     initial={{ opacity: 0, y: 20 }}
@@ -212,7 +255,7 @@ const TrackDetail = () => {
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            {section.resources.length > 0 && section.resources.every(r => completedResources.has(r._id)) ? (
+                            {section.resources.length > 0 && section.resources.every((r: any) => completedResources.has(r._id)) ? (
                               <CheckCircle2 className="h-5 w-5 text-primary" />
                             ) : (
                               <Circle className="h-5 w-5 text-muted-foreground" />
@@ -238,7 +281,7 @@ const TrackDetail = () => {
                         </p>
                       ) : (
                         <div className="space-y-2">
-                          {section.resources.map((resource) => {
+                          {section.resources.map((resource: any) => {
                             const Icon = resourceIcons[resource.type as keyof typeof resourceIcons] || FileText;
                             const isCompleted = completedResources.has(resource._id);
                             return (

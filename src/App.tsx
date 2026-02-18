@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Tracks from "./pages/Tracks";
 import TrackDetail from "./pages/TrackDetail";
 import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Quiz from "./pages/Quiz";
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/roadmaps" element={<Roadmaps />} />
             <Route path="/roadmap/:id" element={<TrackDetail />} />
             <Route path="/projects" element={<Projects />} />
+            <Route path="/project/:id" element={<ProjectDetail />} />
             <Route path="/quizzes" element={<Quizzes />} />
             <Route path="/quiz/:id" element={<Quiz />} />
             <Route path="/quiz/:id/results/:attemptId" element={<QuizResults />} />
