@@ -43,6 +43,33 @@ const QuizResults = () => {
     }
   };
 
+  const dummyAttempt = {
+    id: 'demo-attempt',
+    quiz_id: '1',
+    score: 4,
+    percentage: 80,
+    answers: [
+      { question_id: 'q1', choice_id: 'c1', is_correct: true },
+      { question_id: 'q2', choice_id: 'c2', is_correct: true },
+      { question_id: 'q3', choice_id: 'c3', is_correct: false },
+      { question_id: 'q4', choice_id: 'c4', is_correct: true },
+      { question_id: 'q5', choice_id: 'c5', is_correct: true },
+    ],
+    quiz: {
+      title: 'HTML & CSS Fundamentals',
+      passing_score: 70,
+      roadmap: { slug: 'frontend-development' },
+    },
+  };
+
+  const dummyQuestions = [
+    { id: 'q1', prompt: 'What does HTML stand for?', explanation: 'HTML stands for HyperText Markup Language.', choices: [{ id: 'c1', choice_text: 'HyperText Markup Language', is_correct: true }, { id: 'c1b', choice_text: 'High Tech Modern Language', is_correct: false }] },
+    { id: 'q2', prompt: 'Which CSS property controls text size?', explanation: 'The font-size property sets the size of text.', choices: [{ id: 'c2', choice_text: 'font-size', is_correct: true }, { id: 'c2b', choice_text: 'text-size', is_correct: false }] },
+    { id: 'q3', prompt: 'What is the correct element for the largest heading?', explanation: '<h1> defines the most important heading.', choices: [{ id: 'c3', choice_text: '<heading>', is_correct: false }, { id: 'c3b', choice_text: '<h1>', is_correct: true }] },
+    { id: 'q4', prompt: 'Which property changes background color?', explanation: 'background-color sets the background color of an element.', choices: [{ id: 'c4', choice_text: 'background-color', is_correct: true }, { id: 'c4b', choice_text: 'bgcolor', is_correct: false }] },
+    { id: 'q5', prompt: 'Which attribute specifies alternate text for an image?', explanation: 'The alt attribute provides alternative text.', choices: [{ id: 'c5', choice_text: 'alt', is_correct: true }, { id: 'c5b', choice_text: 'title', is_correct: false }] },
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen">
@@ -54,8 +81,11 @@ const QuizResults = () => {
     );
   }
 
-  const passed = attempt.percentage >= (attempt.quiz.passing_score || 70);
-  const mistakes = attempt.answers.filter((a: any) => !a.is_correct);
+  const displayAttempt = attempt || dummyAttempt;
+  const displayQuestions = questions.length > 0 ? questions : dummyQuestions;
+
+  const passed = displayAttempt.percentage >= (displayAttempt.quiz?.passing_score || 70);
+  const mistakes = (displayAttempt.answers || []).filter((a: any) => !a.is_correct);
 
   return (
     <div className="min-h-screen">
@@ -69,7 +99,7 @@ const QuizResults = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center"
           >
-            <Card className={`glass-card p-8 border-2 ${
+                <Card className={`glass-card p-8 border-2 ${
               passed ? 'border-green-500' : 'border-yellow-500'
             }`}>
               <div className="space-y-6">
@@ -91,15 +121,15 @@ const QuizResults = () => {
                   </h1>
                   <p className="text-lg text-muted-foreground">
                     {passed 
-                      ? `You passed the ${attempt.quiz.title}!` 
-                      : `You scored ${attempt.percentage}%. Keep practicing!`
+                      ? `You passed the ${displayAttempt.quiz?.title}!` 
+                      : `You scored ${displayAttempt.percentage}%. Keep practicing!`
                     }
                   </p>
                 </div>
 
                 <div className="flex justify-center">
                   <ProgressCircle 
-                    progress={attempt.percentage} 
+                    progress={displayAttempt.percentage} 
                     size={160}
                     strokeWidth={12}
                     label="Your Score"
@@ -108,7 +138,7 @@ const QuizResults = () => {
 
                 <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
                   <div className="glass-surface p-4 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600">{attempt.score}</p>
+                    <p className="text-2xl font-bold text-green-600">{displayAttempt.score}</p>
                     <p className="text-sm text-muted-foreground">Correct</p>
                   </div>
                   <div className="glass-surface p-4 rounded-lg">
@@ -116,7 +146,7 @@ const QuizResults = () => {
                     <p className="text-sm text-muted-foreground">Incorrect</p>
                   </div>
                   <div className="glass-surface p-4 rounded-lg">
-                    <p className="text-2xl font-bold">{questions.length}</p>
+                    <p className="text-2xl font-bold">{displayQuestions.length}</p>
                     <p className="text-sm text-muted-foreground">Total</p>
                   </div>
                 </div>
@@ -128,7 +158,7 @@ const QuizResults = () => {
                       Retake Quiz
                     </Button>
                   </Link>
-                  <Link to={`/track/${attempt.quiz.roadmap?.slug}`}>
+                  <Link to={`/track/${displayAttempt.quiz?.roadmap?.slug}`}>
                     <Button className="gradient-primary text-white border-0" size="lg">
                       <BookOpen className="h-4 w-4 mr-2" />
                       Back to Track
@@ -153,7 +183,7 @@ const QuizResults = () => {
               </div>
 
               {mistakes.map((answer: any, idx: number) => {
-                const question = questions.find((q) => q.id === answer.question_id);
+                const question = displayQuestions.find((q: any) => q.id === answer.question_id);
                 if (!question) return null;
 
                 const userChoice = question.choices.find((c: any) => c.id === answer.choice_id);
@@ -163,7 +193,7 @@ const QuizResults = () => {
                   <Card key={answer.question_id} className="glass-card p-6 space-y-4">
                     <div className="flex items-start gap-3">
                       <Badge variant="destructive" className="shrink-0">
-                        Q{questions.findIndex((q) => q.id === question.id) + 1}
+                        Q{displayQuestions.findIndex((q: any) => q.id === question.id) + 1}
                       </Badge>
                       <div className="flex-1 space-y-4">
                         <h3 className="text-lg font-semibold">{question.prompt}</h3>
