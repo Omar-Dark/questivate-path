@@ -26,30 +26,37 @@ import { Loader2, Plus, Pencil, Trash2, ChevronDown, ChevronRight, Link as LinkI
 import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
+const dummyResources: Record<string, any[]> = {
+  ds1: [
+    { _id: 'dres1', title: 'MDN HTML Guide', url: 'https://developer.mozilla.org/en-US/docs/Learn/HTML', type: 'article' },
+    { _id: 'dres2', title: 'CSS Crash Course', url: 'https://www.youtube.com/watch?v=yfoY53QXEnI', type: 'video' },
+    { _id: 'dres3', title: 'Flexbox Froggy', url: 'https://flexboxfroggy.com/', type: 'article' },
+  ],
+  ds2: [
+    { _id: 'dres4', title: 'JavaScript.info', url: 'https://javascript.info/', type: 'article' },
+    { _id: 'dres5', title: 'ES6 Features Overview', url: 'https://www.youtube.com/watch?v=NCwa_xi0Uuc', type: 'video' },
+  ],
+  ds3: [
+    { _id: 'dres6', title: 'Node.js Official Docs', url: 'https://nodejs.org/en/docs/', type: 'article' },
+    { _id: 'dres7', title: 'Express.js Tutorial', url: 'https://www.youtube.com/watch?v=L72fhGm1tfE', type: 'video' },
+  ],
+};
+
+const dummySections: Record<string, any[]> = {
+  dr1: [
+    { _id: 'ds1', title: 'HTML & CSS Basics', description: 'Learn the building blocks of the web', difficulty: 'Beginner' },
+    { _id: 'ds2', title: 'JavaScript Fundamentals', description: 'Core JS concepts and ES6+', difficulty: 'Beginner' },
+  ],
+  dr2: [
+    { _id: 'ds3', title: 'Node.js Basics', description: 'Server-side JavaScript', difficulty: 'Intermediate' },
+  ],
+  dr3: [],
+};
+
 const dummyRoadmaps = [
-  {
-    _id: 'dr1',
-    title: 'Frontend Development',
-    description: 'Master modern frontend technologies from HTML/CSS to React and beyond.',
-    sections: [
-      { _id: 'ds1', title: 'HTML & CSS Basics', description: 'Learn the building blocks of the web', difficulty: 'Beginner', resources: [] },
-      { _id: 'ds2', title: 'JavaScript Fundamentals', description: 'Core JS concepts and ES6+', difficulty: 'Beginner', resources: [] },
-    ],
-  },
-  {
-    _id: 'dr2',
-    title: 'Backend Development',
-    description: 'Build robust server-side applications with Node.js, databases, and APIs.',
-    sections: [
-      { _id: 'ds3', title: 'Node.js Basics', description: 'Server-side JavaScript', difficulty: 'Intermediate', resources: [] },
-    ],
-  },
-  {
-    _id: 'dr3',
-    title: 'Data Science',
-    description: 'Explore data analysis, machine learning, and statistical modeling.',
-    sections: [],
-  },
+  { _id: 'dr1', title: 'Frontend Development', description: 'Master modern frontend technologies from HTML/CSS to React and beyond.' },
+  { _id: 'dr2', title: 'Backend Development', description: 'Build robust server-side applications with Node.js, databases, and APIs.' },
+  { _id: 'dr3', title: 'Data Science', description: 'Explore data analysis, machine learning, and statistical modeling.' },
 ];
 
 // ======== Roadmap Form ========
@@ -161,19 +168,21 @@ const ResourceForm = ({ initial, onSubmit, onCancel }: {
 
 // ======== Section Resources Sub-Panel ========
 const SectionResources = ({ sectionId }: { sectionId: string }) => {
-  const { data: resources, isLoading, refetch } = useSectionResources(sectionId);
+  const { data: apiResources, isLoading, refetch } = useSectionResources(sectionId);
   const createResource = useCreateResource();
   const updateResource = useUpdateResource();
   const deleteResource = useDeleteResource();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ExternalResource | null>(null);
 
+  const resources = apiResources?.length ? apiResources : (dummyResources[sectionId] || []);
+
   if (isLoading) return <Loader2 className="h-4 w-4 animate-spin text-primary mx-auto" />;
 
   return (
     <div className="space-y-2 pl-4 border-l-2 border-border/50">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-muted-foreground">Resources</p>
+        <p className="text-sm font-medium text-muted-foreground">Resources ({resources.length})</p>
         <Button variant="ghost" size="sm" onClick={() => { setShowForm(true); setEditing(null); }}>
           <Plus className="h-3 w-3 mr-1" /> Add
         </Button>
@@ -201,7 +210,7 @@ const SectionResources = ({ sectionId }: { sectionId: string }) => {
         </Card>
       )}
 
-      {resources?.map((r) => (
+      {resources.map((r: any) => (
         <div key={r._id} className="flex items-center justify-between p-2 rounded-lg bg-muted/20 text-sm">
           <div className="flex items-center gap-2 min-w-0">
             {r.type === 'video' ? <Video className="h-3.5 w-3.5 text-primary shrink-0" /> : <FileText className="h-3.5 w-3.5 text-primary shrink-0" />}
@@ -218,7 +227,7 @@ const SectionResources = ({ sectionId }: { sectionId: string }) => {
           </div>
         </div>
       ))}
-      {!resources?.length && !showForm && (
+      {!resources.length && !showForm && (
         <p className="text-xs text-muted-foreground italic">No resources yet</p>
       )}
     </div>
@@ -227,7 +236,7 @@ const SectionResources = ({ sectionId }: { sectionId: string }) => {
 
 // ======== Sections Panel for a Roadmap ========
 const RoadmapSections = ({ roadmapId }: { roadmapId: string }) => {
-  const { data: sections, isLoading, refetch } = useRoadmapSections(roadmapId);
+  const { data: apiSections, isLoading, refetch } = useRoadmapSections(roadmapId);
   const createSection = useCreateSection();
   const updateSection = useUpdateSection();
   const deleteSection = useDeleteSection();
@@ -235,12 +244,14 @@ const RoadmapSections = ({ roadmapId }: { roadmapId: string }) => {
   const [editing, setEditing] = useState<ExternalSection | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
+  const sections = apiSections?.length ? apiSections : (dummySections[roadmapId] || []);
+
   if (isLoading) return <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto my-4" />;
 
   return (
     <div className="space-y-3 mt-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold">Sections</p>
+        <p className="text-sm font-semibold">Sections ({sections.length})</p>
         <Button variant="outline" size="sm" onClick={() => { setShowForm(true); setEditing(null); }}>
           <Plus className="h-3 w-3 mr-1" /> Add Section
         </Button>
@@ -268,7 +279,7 @@ const RoadmapSections = ({ roadmapId }: { roadmapId: string }) => {
         </Card>
       )}
 
-      {sections?.map((s) => (
+      {sections.map((s: any) => (
         <Collapsible
           key={s._id}
           open={expandedSection === s._id}
@@ -300,7 +311,7 @@ const RoadmapSections = ({ roadmapId }: { roadmapId: string }) => {
           </div>
         </Collapsible>
       ))}
-      {!sections?.length && !showForm && (
+      {!sections.length && !showForm && (
         <p className="text-sm text-muted-foreground italic text-center py-4">No sections yet</p>
       )}
     </div>
